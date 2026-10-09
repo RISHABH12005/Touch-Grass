@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  studentId   String    @unique
+  createdAt   DateTime  @default(now())
+  submissions Submission[]
+  completions Completion[]
+}
+
+model Challenge {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  active      Boolean   @default(true)
+  dailyChallenges DailyChallenge[]
+}
+
+model DailyChallenge {
+  id          String    @id @default(cuid())
+  challengeId String
+  date        DateTime
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  submissions Submission[]
+  completions Completion[]
+
+  @@unique([date])
+}
+
+model Submission {
+  id                 String         @id @default(cuid())
+  userId             String
+  dailyChallengeId   String
+  image              String
+  verificationStatus String         @default("pending")
+  confidence         Float?
+  reason             String?
+  createdAt          DateTime        @default(now())
+  user               User           @relation(fields: [userId], references: [id])
+  dailyChallenge     DailyChallenge @relation(fields: [dailyChallengeId], references: [id])
+}
+
+model Completion {
+  id               String         @id @default(cuid())
+  userId           String
+  dailyChallengeId String
+  completedAt      DateTime        @default(now())
+  user             User           @relation(fields: [userId], references: [id])
+  dailyChallenge   DailyChallenge @relation(fields: [dailyChallengeId], references: [id])
+
+  @@unique([userId, dailyChallengeId])
+}
+
+model GoodieMilestone {
+  id           String @id @default(cuid())
+  requiredDays Int
+  name         String
+  description String
+}
