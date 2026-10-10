@@ -109,7 +109,7 @@ export default function Dashboard() {
     <main className="min-h-screen overflow-hidden bg-[#f4f7f0] text-[#183323]">
       <div className="pointer-events-none fixed inset-0 opacity-50" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(#b7cdb0 0.7px, transparent 0.7px)', backgroundSize: '22px 22px' }} />
       <PageContainer className="relative z-10 max-w-[1400px] py-5 sm:py-8 lg:py-10">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#173e2a] text-[#d6edbd] shadow-lg shadow-green-950/10">
               <LeafMark />
@@ -137,8 +137,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <section className="relative mb-7 overflow-hidden rounded-[2rem] bg-[#173e2a] px-6 py-8 text-white shadow-[0_24px_60px_-35px_rgba(23,62,42,0.65)] sm:px-9 sm:py-10 lg:px-12 lg:py-12">
-          <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full border border-white/10 sm:right-12 sm:top-[-9rem] sm:h-[26rem] sm:w-[26rem]" />
+        <section className="relative mb-9 min-h-[360px] overflow-hidden rounded-[2rem] bg-[#173e2a] px-6 py-10 text-white shadow-[0_24px_60px_-35px_rgba(23,62,42,0.65)] sm:px-9 sm:py-12 lg:px-14 lg:py-14">
+          <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full border border-white/10 motion-safe:animate-[spin_36s_linear_infinite] motion-reduce:animate-none sm:right-12 sm:top-[-9rem] sm:h-[26rem] sm:w-[26rem]" />
           <div className="pointer-events-none absolute -right-4 top-10 h-44 w-44 rounded-full border border-white/10 sm:right-36 sm:top-14 sm:h-64 sm:w-64" />
           <div className="pointer-events-none absolute bottom-[-5rem] right-[22%] h-52 w-52 rounded-full bg-[#9bc878]/10 blur-3xl" />
           <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]">
@@ -183,14 +183,14 @@ export default function Dashboard() {
           </div>
         )}
 
-        <section className="mb-7 grid gap-5 lg:grid-cols-[1.45fr_0.85fr]">
+        <section className="mb-8 grid items-stretch gap-6 lg:grid-cols-[1.4fr_0.9fr]">
           <article className="group overflow-hidden rounded-[1.7rem] border border-[#e0e8dc] bg-white shadow-[0_12px_36px_-28px_rgba(24,51,35,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_45px_-30px_rgba(24,51,35,0.4)]">
             <div className="flex items-center justify-between border-b border-[#edf1e9] px-6 py-5 sm:px-8">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#82917d]">The daily mission</p>
                 <h2 className="mt-1 text-lg font-extrabold text-[#1d3826]">Today’s challenge</h2>
               </div>
-              <span className="rounded-full bg-[#edf6e8] px-3 py-1.5 text-xs font-bold text-[#417345]">01 / DAY</span>
+              <span className="rounded-full bg-[#edf6e8] px-3 py-1.5 text-xs font-bold text-[#417345]">A MOMENT OUTSIDE</span>
             </div>
             <div className="grid gap-5 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">
               <div>
@@ -206,11 +206,7 @@ export default function Dashboard() {
                     <p className="mt-3 max-w-xl leading-7 text-[#6c7b6b]">There isn’t a challenge published today. Check back soon, or take a short walk anyway.</p>
                   </>
                 )}
-                <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#71816f]">
-                  <span className="rounded-full bg-[#f5f7f2] px-3 py-2">↗ Get outdoors</span>
-                  <span className="rounded-full bg-[#f5f7f2] px-3 py-2">◎ Capture a moment</span>
-                  <span className="rounded-full bg-[#f5f7f2] px-3 py-2">✳ Build a habit</span>
-                </div>
+                <p className="mt-5 text-sm font-semibold text-[#82917d]">A small reset for your day. Take it at your own pace.</p>
               </div>
               <button
                 type="button"
@@ -231,30 +227,37 @@ export default function Dashboard() {
               </div>
               <span className="text-2xl" aria-hidden="true">🌿</span>
             </div>
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-[#f5f8f2] p-4">
-                <p className="text-xl" aria-hidden="true">🔥</p>
-                <p className="mt-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">Current streak</p>
-                <p className="mt-1 text-2xl font-black tracking-tight text-[#203a28]">{streak} <span className="text-sm font-bold text-[#82917d]">days</span></p>
+            <div className="mt-7 flex flex-col items-center rounded-[1.4rem] bg-[#f6f9f3] px-5 py-6 sm:flex-row sm:gap-6">
+              <div className="relative flex h-36 w-36 shrink-0 items-center justify-center" role="progressbar" aria-label="Progress to next reward" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                <svg viewBox="0 0 120 120" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
+                  <circle cx="60" cy="60" r="49" fill="none" stroke="#e1eadb" strokeWidth="8" />
+                  <circle cx="60" cy="60" r="49" fill="none" stroke="url(#progressGradient)" strokeWidth="8" strokeLinecap="round" strokeDasharray={2 * Math.PI * 49} strokeDashoffset={2 * Math.PI * 49 * (1 - progress / 100)} className="transition-[stroke-dashoffset] duration-1000 ease-out motion-reduce:transition-none" />
+                  <defs><linearGradient id="progressGradient" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#8dbd69" /><stop offset="1" stopColor="#168342" /></linearGradient></defs>
+                </svg>
+                <div className="text-center">
+                  <p className="text-3xl font-black tracking-tight text-[#203a28]">{progress}<span className="text-lg">%</span></p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">in bloom</p>
+                </div>
               </div>
-              <div className="rounded-2xl bg-[#f5f8f2] p-4">
-                <p className="text-xl" aria-hidden="true">🌳</p>
-                <p className="mt-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">Days outside</p>
-                <p className="mt-1 text-2xl font-black tracking-tight text-[#203a28]">{totalDays}</p>
+              <div className="mt-5 min-w-0 flex-1 text-center sm:mt-0 sm:text-left">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">Next milestone</p>
+                <p className="mt-1 text-lg font-extrabold text-[#203a28]">{nextMilestone?.name || 'Your next adventure'}</p>
+                <p className="mt-2 text-sm leading-6 text-[#70816d]">{nextMilestone ? `${Math.max(0, nextMilestone.requiredDays - totalDays)} more day${Math.max(0, nextMilestone.requiredDays - totalDays) === 1 ? '' : 's'} to your next reward.` : 'Every check-in counts. Keep going.'}</p>
+                <div className="mt-4 flex justify-center gap-2 sm:justify-start">
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#31553a] shadow-sm">{totalDays} / {nextMilestone?.requiredDays ?? totalDays} days</span>
+                  <span className="rounded-full bg-[#e8f1e1] px-3 py-1.5 text-xs font-bold text-[#52734b]">🌱 Growing</span>
+                </div>
               </div>
             </div>
-            <div className="mt-6 rounded-2xl border border-[#e8eee4] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">Next milestone</p>
-                  <p className="mt-1 font-extrabold text-[#203a28]">{nextMilestone?.name || 'Your next adventure'}</p>
-                </div>
-                <p className="whitespace-nowrap text-xs font-bold text-[#648163]">{nextMilestone ? `${totalDays} / ${nextMilestone.requiredDays}` : 'In progress'}</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[#edf1e9] p-4 transition-colors hover:bg-[#f8fbf5]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">🔥 Current streak</p>
+                <p className="mt-2 text-2xl font-black tracking-tight text-[#203a28]">{streak} <span className="text-sm font-bold text-[#82917d]">days</span></p>
               </div>
-              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[#edf1e9]" role="progressbar" aria-label="Progress to next reward" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-                <div className="h-full rounded-full bg-gradient-to-r from-[#78ae5e] to-[#168342] transition-all duration-700" style={{ width: `${progress}%` }} />
+              <div className="rounded-2xl border border-[#edf1e9] p-4 transition-colors hover:bg-[#f8fbf5]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-[#82917d]">🌳 Days outside</p>
+                <p className="mt-2 text-2xl font-black tracking-tight text-[#203a28]">{totalDays}</p>
               </div>
-              <p className="mt-2 text-xs text-[#82917d]">{nextMilestone ? `${Math.max(0, nextMilestone.requiredDays - totalDays)} more day${Math.max(0, nextMilestone.requiredDays - totalDays) === 1 ? '' : 's'} to your next reward.` : 'Every check-in counts. Keep going.'}</p>
             </div>
           </article>
         </section>
