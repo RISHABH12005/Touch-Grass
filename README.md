@@ -61,11 +61,11 @@ Create an API key from https://ollama.com/settings/keys and configure these envi
 OLLAMA_MODE=cloud
 OLLAMA_API_KEY=replace-with-your-secret-key
 OLLAMA_CLOUD_BASE_URL=https://ollama.com/api
-OLLAMA_MODEL=qwen2.5vl: cloud
+OLLAMA_MODEL=qwen3-vl:235b-cloud
 OLLAMA_TIMEOUT_MS=45000
 ```
 
-Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The model name above is only an example; exact model availability and naming can change. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
+Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The example uses Ollama's documented Qwen3-VL 235B cloud model; confirm availability for your account before deploying. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
 
 The application expects a JSON object with `verified`, `confidence` (0–1), and `reason`. Review model output before relying on automated moderation; image verification can be wrong.
 
