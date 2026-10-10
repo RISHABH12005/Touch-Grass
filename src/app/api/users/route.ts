@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 
-const JUET_EMAIL_PATTERN = /^[^\s@]+@juetguna\.in$/i;
+const JUET_EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@juetguna\.in$/i;
 
 export async function POST(req: Request) {
   try {
     const body: unknown = await req.json();
-    if (!body || typeof body !== 'object') {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
     const payload = body as Record<string, unknown>;
-    const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+    const name = typeof payload.name === 'string' ? payload.name.trim().replace(/\s+/g, ' ') : '';
     const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim().toUpperCase() : '';
     const studentEmail = typeof payload.studentEmail === 'string' ? payload.studentEmail.trim().toLowerCase() : '';
 
@@ -19,7 +19,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Roll number, name, and student email are required' }, { status: 400 });
     }
     if (name.length > 100 || studentId.length > 80 || studentEmail.length > 254 || !JUET_EMAIL_PATTERN.test(studentEmail)) {
-      return NextResponse.json({ error: 'Enter valid details and a JUET student email ending in @juetguna.in' }, { status: 400 });
+      return NextResponse.json({ error: 'Enter a valid JUET student email ending in @juetguna.in' }, { status: 400 });
+    }
+
+    const existingEmail = await prisma.user.findUnique({ where: { studentEmail } });
+    if (existingEmail && existingEmail.studentId !== studentId) {
+      return NextResponse.json({ error: 'This student email is already linked to another roll number.' }, { status: 409 });
     }
 
     const user = await prisma.user.upsert({
