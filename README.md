@@ -5,99 +5,16 @@ A responsive web application that encourages students at **Jaypee University of 
 **Live app:** https://touch-grass-vert.vercel.app  
 **Repository:** https://github.com/RISHABH12005/Touch-Grass
 
-## Overview
+Students register with their name, roll number, and official JUET student email, view the daily challenge, and submit a photo as evidence. The app tracks submissions, completions, streaks, and milestones.
 
-Students identify themselves with their name and student ID, view the daily outdoor challenge, and submit a photo as evidence. The app tracks submissions, completions, streaks, and progress toward milestone rewards.
+## Stack
 
-The project is built with Next.js App Router and TypeScript. Prisma provides database access to PostgreSQL. Image verification uses an Ollama-compatible vision model when a reachable model endpoint is configured.
+- Next.js App Router, React, TypeScript, Tailwind CSS
+- PostgreSQL (Neon in production) and Prisma
+- Ollama local or Ollama Cloud vision-capable model for image verification
+- Vercel deployment; optional Cloudflare Tunnel for locally hosted services
 
-## Features
-
-- **Student onboarding** using a full name and student ID.
-- **Daily outdoor challenge** with a title and description.
-- **Photo submission** for challenge evidence.
-- **AI-assisted image verification** through Ollama and a vision model such as LLaVA, when the model endpoint is reachable from the server.
-- **Progress tracking** for completions and streaks.
-- **Milestone rewards** at 3, 7, 14, and 30 consecutive days.
-- **Admin interface** for challenge-related management and verification workflows.
-- **Responsive UI** for mobile and desktop screens.
-
-### Milestone rewards
-
-| Consecutive days | Milestone |
-| ---: | --- |
-| 3 | Digital badge |
-| 7 | JUET sticker |
-| 14 | JUET merchandise |
-| 30 | Special goodie or certificate |
-
-Reward fulfilment depends on the organisers and is not automatically guaranteed by the application.
-
-## Technology stack
-
-| Area | Technology |
-| --- | --- |
-| Framework | Next.js App Router |
-| Language | TypeScript |
-| UI styling | Tailwind CSS |
-| Database | PostgreSQL (Neon in production) |
-| ORM | Prisma |
-| Image verification | Ollama + a vision model (for example, LLaVA) |
-| Deployment | Vercel |
-
-## Repository structure
-
-The main application code follows the Next.js `src/` convention:
-
-```text
-Touch-Grass/
-├── prisma/
-│   ├── schema.prisma       # Database models and relations
-│   └── seed.ts             # Idempotent initial challenge/milestone data
-├── public/                 # Static assets
-├── src/
-│   ├── app/
-│   │   ├── api/            # App Router API endpoints
-│   │   ├── admin/          # Admin interface
-│   │   ├── challenge/      # Daily challenge and photo submission
-│   │   ├── dashboard/      # Student progress dashboard
-│   │   ├── layout.tsx      # Root layout
-│   │   └── page.tsx        # Student entry/onboarding page
-│   ├── components/
-│   │   └── ui/             # Shared UI components
-│   └── lib/
-│       ├── ai/             # Ollama/image-verification integration
-│       ├── challenges/     # Daily challenge selection logic
-│       └── db/             # Prisma client/database access
-├── .env.example            # Documented environment-variable template, if present
-├── next.config.ts
-├── package.json
-├── prisma.config.ts        # If used by the checked-out Prisma setup
-├── tsconfig.json
-└── README.md
-```
-
-> This is a guide to the main areas, not an exhaustive file listing. Check the repository for the exact current filenames and API route names.
-
-## How the application works
-
-1. A student enters their name and student ID.
-2. The app loads the daily challenge.
-3. The student selects and submits a photo.
-4. The server sends the image and challenge context to the configured vision model for verification.
-5. The application records the submission and, when accepted, the completion.
-6. The dashboard reflects completion history, streaks, and milestone progress.
-
-## Requirements
-
-- Node.js compatible with the project's Next.js version (Node.js 20.9+ is a baseline for Next.js 16; use the version configured for deployment).
-- npm.
-- A PostgreSQL database.
-- Ollama and a compatible vision model for AI verification during local development.
-
-## Local development
-
-### 1. Clone the repository
+## Local setup
 
 ```bash
 git clone https://github.com/RISHABH12005/Touch-Grass.git
@@ -105,121 +22,83 @@ cd Touch-Grass
 npm install
 ```
 
-### 2. Configure environment variables
-
-Create a local `.env` file in the project root. Do not commit it.
-
-At minimum, configure the PostgreSQL connection string:
-
-```dotenv
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
-```
-
-Set any additional variables required by the current implementation, such as the Ollama endpoint or admin secret, only after checking the code for the exact variable names. Keep credentials private and never paste them into issues or commits.
-
-For local Ollama, the endpoint is commonly:
-
-```dotenv
-OLLAMA_URL="http://127.0.0.1:11434"
-```
-
-Use the exact variable name expected by the code. The database URL above is an example format, not a working credential.
-
-### 3. Set up the database
-
-Review `prisma/schema.prisma` and confirm that `DATABASE_URL` points to the **dedicated Touch Grass database**, never another project's database.
-
-Generate the Prisma client and apply the schema:
+Create a local `.env` from `.env.example`, then set `DATABASE_URL` to your dedicated Touch Grass PostgreSQL database. Never commit environment files or production secrets.
 
 ```bash
 npx prisma generate
 npx prisma db push
-```
-
-Seed the initial challenge and milestone records:
-
-```bash
-npx ts-node prisma/seed.ts
-```
-
-The seed script is intended to be idempotent and add missing initial records. Still, verify the database target before running it. Do not run seeding against a database you have not positively identified.
-
-### 4. Configure Ollama (optional for UI development)
-
-Install Ollama from https://ollama.com and pull a vision model supported by the application. For LLaVA:
-
-```bash
-ollama pull llava
-ollama serve
-```
-
-Keep Ollama running while testing locally. Confirm that the model name and endpoint match the values expected by the code.
-
-### 5. Run the development server
-
-```bash
 npm run dev
 ```
 
 Open http://localhost:3000.
 
-## Useful commands
+## Email registration
 
-```bash
-npm run dev          # Start the local development server
-npm run build        # Generate Prisma client and build the Next.js app
-npm run start        # Start the built app
-npm run lint         # Run ESLint
-npx tsc --noEmit     # Type-check TypeScript
+The app normalizes email addresses to lowercase and validates the official `@juetguna.in` domain. It prevents one student email from being linked to multiple roll numbers. This is **format/domain validation only**; it does not currently send an OTP or verify mailbox ownership. Add an email provider and verification-token flow before describing registration as email-verified.
+
+## Ollama image verification
+
+The server can use either a local Ollama instance or the direct Ollama Cloud API. Cloud requests are sent from the server, not the browser, so the API key stays private.
+
+### Local model
+
+Set in `.env`:
+
+```dotenv
+OLLAMA_MODE=local
+OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llava:latest
+OLLAMA_TIMEOUT_MS=45000
 ```
 
-Run these commands from the repository root. The available scripts are defined in `package.json`.
+Run Ollama and ensure the selected vision model is installed. A local endpoint is suitable for development, but Vercel cannot reach Ollama running only on your laptop through `localhost`.
 
-## Production deployment
+### Ollama Cloud
 
-The production app is hosted on Vercel and uses a dedicated Neon PostgreSQL database.
+Create an API key from https://ollama.com/settings/keys and configure these environment variables in Vercel Project Settings → Environment Variables (and locally in `.env` when testing):
 
-Before deploying:
+```dotenv
+OLLAMA_MODE=cloud
+OLLAMA_API_KEY=replace-with-your-secret-key
+OLLAMA_CLOUD_BASE_URL=https://ollama.com/api
+OLLAMA_MODEL=qwen2.5vl: cloud
+OLLAMA_TIMEOUT_MS=45000
+```
 
-1. Confirm Vercel is connected to `RISHABH12005/Touch-Grass` and the intended production branch.
-2. Confirm the Vercel **Root Directory** points to the directory containing this project's `package.json` and `src/app/`.
-3. Configure production environment variables in Vercel's Project Settings; do not commit production `.env` files.
-4. Ensure `DATABASE_URL` points to the dedicated Touch Grass Neon database.
-5. Run a fresh deployment and inspect the build logs. A deployment is successful only when Vercel reports **Ready**.
-6. Test the homepage, onboarding, daily challenge API, dashboard, and submission workflow against production.
+Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The model name above is only an example; exact model availability and naming can change. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
 
-### Production AI limitation
+The application expects a JSON object with `verified`, `confidence` (0–1), and `reason`. Review model output before relying on automated moderation; image verification can be wrong.
 
-Vercel functions cannot reach Ollama running only on a developer's private computer or localhost. AI verification in production requires an Ollama-compatible endpoint that the deployed server can reach. If no such endpoint is configured, treat production AI verification as unavailable; do not report the full submission workflow as verified.
+## Cloudflare Tunnel (optional)
 
-## Data and security notes
+A quick tunnel can expose the local app for testing:
 
-- Never commit `.env`, `.env.local`, `.env.production`, API keys, database URLs, or other secrets.
-- Use a dedicated database for this project. Never run Prisma schema or seed commands against an unrelated project's database.
-- The student ID is used as an application identifier; do not expose student data unnecessarily.
-- Photo-based AI verification is not proof of physical location or identity.
-- Review admin access controls and validation before exposing administrative endpoints publicly.
+```bash
+npm run dev
+cloudflared tunnel --url http://localhost:3000
+```
 
-## Current limitations
+Run those commands in separate terminals. The generated `trycloudflare.com` address is temporary and is not intended for production. For a persistent hostname, create a tunnel in Cloudflare Dashboard → Networking → Tunnels and follow [the official setup guide](https://developers.cloudflare.com/tunnel/get-started/). Store tunnel credentials only in the Cloudflare dashboard or the host's secret manager.
 
-- No GPS-based location verification is described as part of the current workflow.
-- AI image checks may be inaccurate and depend on model availability.
-- Production AI verification requires a server-reachable model endpoint.
-- Reward distribution is handled by the organisers.
-- This is a web app, not a native mobile application.
+Cloudflare Tunnel is optional for the Vercel deployment. It can be useful to make a local API/model reachable by Vercel, but require authentication/Cloudflare Access and never publish an unprotected Ollama API.
 
-## Contributing
+## Deployment checklist
 
-1. Create a feature branch.
-2. Make a focused change.
-3. Run TypeScript checks, linting, and a production build where possible.
-4. Describe what changed and how it was tested in the pull request.
-5. Never include credentials, private student data, or unrelated generated files.
+- Set `DATABASE_URL` to the dedicated Touch Grass database.
+- Set a strong `ADMIN_SECRET`.
+- Select local/cloud Ollama mode and configure the required endpoint/key.
+- Do not add secrets to GitHub or expose them in client-side variables.
+- Redeploy after updating Vercel environment variables.
+- Test registration, dashboard, photo submission, and AI verification against the deployment.
 
-## Project context
+## Data and security
 
-Created for the **Hacktoberfest 2026 Week 1** challenge.
+- Admin endpoints use the server-side `ADMIN_SECRET`; send it in the `Authorization: Bearer …` header.
+- Do not commit `.env` files, API keys, database URLs, or Cloudflare tunnel tokens.
+- The student ID is an application identifier. Limit access to student records.
+- Photo verification is not proof of identity or physical location.
+- Reward fulfilment is handled by organisers and is not automatically guaranteed.
 
 ## License
 
-No license is declared here unless a license file is present in the repository. Check the repository's `LICENSE` file before reusing or redistributing the code.
+See the repository's `LICENSE` file for reuse terms.
