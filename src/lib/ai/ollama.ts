@@ -9,7 +9,7 @@ const baseUrl = (isCloud
 export const ollamaConfig = {
   mode: isCloud ? 'cloud' : 'local',
   baseUrl,
-  model: process.env.OLLAMA_MODEL || (isCloud ? 'qwen2.5vl: cloud' : 'llava:latest'),
+  model: process.env.OLLAMA_MODEL || (isCloud ? 'qwen3-vl:235b-cloud' : 'llava:latest'),
 };
 
 export interface VerificationResponse {
