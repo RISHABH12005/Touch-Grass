@@ -91,15 +91,32 @@ function parseVerification(raw: unknown): VerificationResponse {
       continue;
     }
 
-    const verifiedValue = data.verified ?? data.is_verified ?? data.is_evidence;
+    const answerValue = data.answer;
+    const verifiedValue = data.verified
+      ?? data.is_verified
+      ?? data.is_evidence
+      ?? data.is_reasonable_evidence
+      ?? (typeof answerValue === 'boolean' ? answerValue : undefined);
     const confidenceValue = data.confidence ?? data.confidence_score;
-    const reasonValue = data.reason ?? data.explanation;
+    const answerToken = typeof answerValue === 'string'
+      ? answerValue.trim().toLowerCase().replace(/[.!]$/, '')
+      : '';
+    const answerVerdict = /^(true|yes|verified|sufficient|sufficient evidence)$/.test(answerToken)
+      ? true
+      : /^(false|no|rejected|insufficient|insufficient evidence)$/.test(answerToken)
+        ? false
+        : undefined;
+    const reasonValue = data.reason
+      ?? data.explanation
+      ?? (answerVerdict === undefined && typeof answerValue === 'string' ? answerValue : undefined);
 
     const verified = typeof verifiedValue === 'boolean'
       ? verifiedValue
       : typeof verifiedValue === 'string' && /^(true|false)$/i.test(verifiedValue)
         ? verifiedValue.toLowerCase() === 'true'
-        : undefined;
+        : verifiedValue === undefined
+          ? answerVerdict
+          : undefined;
     let confidence = typeof confidenceValue === 'number'
       ? confidenceValue
       : typeof confidenceValue === 'string' && confidenceValue.trim() !== ''
