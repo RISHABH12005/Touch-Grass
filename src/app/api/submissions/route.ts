@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyImage } from '@/lib/ai/ollama';
 import { getOrCreateTodayDailyChallenge, getTodayChallenge } from '@/lib/challenges';
+import { getSessionUserId } from '@/lib/auth/session';
 
 export async function POST(req: Request) {
   try {
-    const { userId, imageBase64 } = await req.json();
+    const userId = getSessionUserId(req);
+    if (!userId) return NextResponse.json({ error: 'Sign in to submit a challenge' }, { status: 401 });
+    const { imageBase64 } = await req.json();
 
-    if (!userId || !imageBase64) {
+    if (typeof imageBase64 !== 'string' || !imageBase64) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
