@@ -13,20 +13,39 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('tg_user');
-    if (savedUser) {
+    let cancelled = false;
+
+    async function checkSession() {
+      // localStorage is only a UI cache; the HttpOnly server session is authoritative.
       try {
-        const user = JSON.parse(savedUser) as { id?: unknown; name?: unknown };
-        if (user?.id && typeof user.name === 'string' && user.name.trim()) {
+        const response = await fetch('/api/users', {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+
+        if (cancelled) return;
+
+        if (response.ok) {
+          const user = await response.json();
+          localStorage.setItem('tg_user', JSON.stringify(user));
           router.replace('/dashboard');
           return;
         }
       } catch {
-        // Clear malformed session data and show the registration form.
+        // If the session check fails, let the user register instead of looping forever.
       }
-      localStorage.removeItem('tg_user');
+
+      if (!cancelled) {
+        localStorage.removeItem('tg_user');
+        setCheckingSession(false);
+      }
     }
-    setCheckingSession(false);
+
+    void checkSession();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
