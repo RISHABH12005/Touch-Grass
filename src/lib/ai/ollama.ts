@@ -91,7 +91,7 @@ function parseVerification(raw: unknown): VerificationResponse {
       continue;
     }
 
-    const verifiedValue = data.verified ?? data.is_verified;
+    const verifiedValue = data.verified ?? data.is_verified ?? data.is_evidence;
     const confidenceValue = data.confidence ?? data.confidence_score;
     const reasonValue = data.reason ?? data.explanation;
 
@@ -109,11 +109,15 @@ function parseVerification(raw: unknown): VerificationResponse {
     // Some models report a percentage instead of a 0-1 confidence value.
     if (confidence > 1 && confidence <= 100) confidence /= 100;
 
-    if (verified !== undefined && Number.isFinite(confidence) && confidence >= 0 && confidence <= 1 && typeof reasonValue === 'string') {
+    if (verified !== undefined && Number.isFinite(confidence) && confidence >= 0 && confidence <= 1 && (typeof reasonValue === 'string' || reasonValue === undefined)) {
       return {
         verified,
         confidence,
-        reason: reasonValue.slice(0, 1000),
+        reason: typeof reasonValue === 'string'
+          ? reasonValue.slice(0, 1000)
+          : verified
+            ? 'The image was marked as sufficient evidence for this challenge.'
+            : 'The image was marked as insufficient evidence for this challenge.',
       };
     }
 
