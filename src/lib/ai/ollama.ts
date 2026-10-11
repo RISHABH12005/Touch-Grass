@@ -192,7 +192,7 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
           role: 'user',
           content: [
             { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${image}` } },
+            { type: 'image_url', image_url: `data:${imageMimeType};base64,${image}` },
           ],
         }],
       }
