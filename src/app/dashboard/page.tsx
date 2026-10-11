@@ -88,16 +88,16 @@ export default function Dashboard() {
 
   const firstName = user.name.trim().split(/\s+/)[0];
   const today = new Intl.DateTimeFormat('en-IN', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
-  const totalDays = stats?.totalDays ?? 0;
-  const streak = stats?.currentStreak ?? 0;
+  const totalDays = typeof stats?.totalDays === 'number' ? stats.totalDays : null;
+  const streak = typeof stats?.currentStreak === 'number' ? stats.currentStreak : null;
   const milestone = stats?.nextMilestone ?? null;
-  const progress = milestone?.requiredDays
+  const progress = milestone?.requiredDays && totalDays !== null
     ? Math.min(100, Math.max(0, Math.round((totalDays / milestone.requiredDays) * 100)))
-    : 0;
-  const remaining = milestone ? Math.max(0, milestone.requiredDays - totalDays) : null;
+    : null;
+  const remaining = milestone && totalDays !== null ? Math.max(0, milestone.requiredDays - totalDays) : null;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#08110d] text-[#e8f0e8]">
+    <div className="min-h-screen overflow-hidden bg-[#08110d] text-[#e8f0e8]">
       <div className="pointer-events-none fixed inset-0 opacity-30" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(#345340 0.7px, transparent 0.7px)', backgroundSize: '24px 24px' }} />
       <PageContainer className="relative z-10 mx-auto max-w-[1180px] py-5 sm:py-8 lg:py-10">
         <header className="mb-7 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
@@ -199,7 +199,7 @@ export default function Dashboard() {
                 <div className="min-w-0">
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#ae9c6d]">Next milestone</p>
                   <p className="mt-1 text-lg font-extrabold text-[#f2e8c8]">{milestone.name}</p>
-                  <p className="mt-1 text-sm text-[#b0a783]">{remaining} day{remaining === 1 ? '' : 's'} to go</p>
+                  <p className="mt-1 text-sm text-[#b0a783]">{remaining === null ? 'Progress unavailable' : `${remaining} day${remaining === 1 ? '' : 's'} to go`}</p>
                 </div>
               </div>
             ) : (
@@ -210,7 +210,7 @@ export default function Dashboard() {
                 <p className="max-w-xs text-sm leading-6 text-[#b0a783]">A badge will show here when one is available.</p>
               </div>
             )}
-            {milestone && (
+            {milestone && progress !== null && totalDays !== null && (
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold text-[#b0a783]">
                   <span>Progress</span><span>{progress}%</span>
@@ -237,18 +237,18 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#91a99a]">
                   <span className="text-lg" aria-hidden="true">🔥</span> Current streak
                 </div>
-                <p className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">{streak}<span className="ml-2 text-sm font-bold text-[#8ba091]">days</span></p>
+                <p className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">{streak ?? '—'}<span className="ml-2 text-sm font-bold text-[#8ba091]">days</span></p>
               </div>
               <div className="rounded-2xl border border-white/[0.07] bg-[#0c1711]/80 p-4 sm:p-5">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#91a99a]">
                   <span className="text-lg" aria-hidden="true">🌳</span> Days outside
                 </div>
-                <p className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">{totalDays}</p>
+                <p className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">{totalDays ?? '—'}</p>
               </div>
             </div>
           </section>
         </div>
       </PageContainer>
-    </main>
+    </div>
   );
 }
