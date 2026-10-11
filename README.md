@@ -3,7 +3,8 @@
 A responsive web application that encourages students at **Jaypee University of Engineering and Technology (JUET), Guna** to spend time outdoors by completing one campus-focused challenge each day.
 
 **Live app:** https://touch-grass-vert.vercel.app  
-**Repository:** https://github.com/RISHABH12005/Touch-Grass
+**Repository:** https://github.com/RISHABH12005/Touch-Grass  
+**Demo video:** https://youtu.be/ot_mVIVPSqs
 
 Students register with their name, roll number, and official JUET student email, view the daily challenge, and submit a photo as evidence. The app tracks submissions, completions, streaks, and milestones.
 
@@ -61,13 +62,13 @@ Create an API key from https://ollama.com/settings/keys and configure these envi
 OLLAMA_MODE=cloud
 OLLAMA_API_KEY=replace-with-your-secret-key
 OLLAMA_CLOUD_BASE_URL=https://ollama.com/api
-OLLAMA_MODEL=kimi-k3:cloud
+OLLAMA_MODEL=gemma4:cloud
 OLLAMA_TIMEOUT_MS=45000
 ```
 
-Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The example uses Ollama's vision-capable Kimi K3 cloud model. Model availability and billing can change; confirm it is enabled for your account before deploying. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
+Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The example uses the Gemma 4 cloud model. Model availability and billing can change; confirm the selected vision-capable model is available and included in your Ollama account's usage or add the required credits before deploying. HTTP 402 usually means the selected model is not included in the account's current free usage. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
 
-The application expects a JSON object with `verified`, `confidence` (0–1), and `reason`. Review model output before relying on automated moderation; image verification can be wrong.
+The application expects a JSON object with `verified`, `confidence` (0–1), and `reason`; the parser also accepts several common alternative verdict fields. Review model output before relying on automated moderation; image verification can be wrong. If verification returns HTTP 402, check [Ollama usage and billing](https://ollama.com/settings) and choose a model enabled for your account. HTTP 410 indicates a retired model; update `OLLAMA_MODEL` to a currently available vision-capable model.
 
 ## Cloudflare Tunnel (optional)
 
