@@ -2,9 +2,11 @@ type OllamaMode = 'cloud' | 'local';
 
 const mode = (process.env.OLLAMA_MODE || (process.env.OLLAMA_API_KEY ? 'cloud' : 'local')).toLowerCase() as OllamaMode;
 const isCloud = mode === 'cloud';
-const baseUrl = (isCloud
-  ? (process.env.OLLAMA_CLOUD_BASE_URL || 'https://ollama.com/api')
-  : (process.env.OLLAMA_URL || 'http://127.0.0.1:11434')).replace(/\/$/, '');
+const configuredCloudBaseUrl = (process.env.OLLAMA_CLOUD_BASE_URL || 'https://ollama.com/v1').replace(/\/+$/, '');
+const cloudBaseUrl = configuredCloudBaseUrl.replace(/\/api$/i, '/v1');
+const baseUrl = isCloud
+  ? cloudBaseUrl
+  : (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/+$/, '');
 
 export const ollamaConfig = {
   mode: isCloud ? 'cloud' : 'local',
@@ -159,12 +161,15 @@ function parseVerification(raw: unknown): VerificationResponse {
 export async function verifyImage(challengeDescription: string, imageBase64: string): Promise<VerificationResponse> {
   const prompt = [
     'Determine whether the attached image provides reasonable visual evidence for the outdoor challenge below.',
-    'Return exactly one JSON object matching the required schema. Do not include analysis, markdown, or text outside the object.',
-    'Use a confidence number between 0 and 1. Do not infer identity or exact location from the image.',
+    'Return only a JSON object with exactly these fields: verified (boolean), confidence (number from 0 to 1), and reason (short string).',
+    'Example shape: {"verified":true,"confidence":0.92,"reason":"The image clearly shows the described outdoor activity."}',
+    'Do not include analysis, markdown, or text outside the JSON object. Do not infer identity or exact location from the image.',
     `Challenge: "${challengeDescription.slice(0, 2000)}"`,
   ].join('\n');
 
-  const image = imageBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
+  const dataUriMatch = imageBase64.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+  const imageMimeType = dataUriMatch?.[1] || 'image/jpeg';
+  const image = dataUriMatch ? dataUriMatch[2] : imageBase64;
   if (!image || image.length > 8_000_000) {
     throw new Error('Image data is missing or too large');
   }
@@ -176,14 +181,20 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
-  const endpoint = isCloud ? `${baseUrl}/chat` : `${baseUrl}/api/generate`;
+  const endpoint = isCloud ? `${baseUrl}/chat/completions` : `${baseUrl}/api/generate`;
   const payload = isCloud
     ? {
         model: ollamaConfig.model,
         stream: false,
-        think: false,
-        format: verificationFormat,
-        messages: [{ role: 'user', content: prompt, images: [image] }],
+        temperature: 0,
+        response_format: { type: 'json_object' },
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${image}` } },
+          ],
+        }],
       }
     : {
         model: ollamaConfig.model,
@@ -216,7 +227,10 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     throw new Error(`Ollama verification failed (HTTP ${response.status}). Check the configured model and endpoint.`);
   }
 
-  const data = await response.json() as { response?: unknown; message?: { content?: unknown } };
-  const raw = isCloud ? data.message?.content : data.response;
+  const data = await response.json() as {
+    response?: unknown;
+    choices?: Array<{ message?: { content?: unknown } }>;
+  };
+  const raw = isCloud ? data.choices?.[0]?.message?.content : data.response;
   return parseVerification(raw);
 }
