@@ -11,7 +11,7 @@ const baseUrl = isCloud
 export const ollamaConfig = {
   mode: isCloud ? 'cloud' : 'local',
   baseUrl,
-  model: process.env.OLLAMA_MODEL || (isCloud ? 'kimi-k3:cloud' : 'llava:latest'),
+  model: process.env.OLLAMA_MODEL || (isCloud ? 'gemma4:cloud' : 'llava:latest'),
 };
 
 export interface VerificationResponse {
@@ -96,6 +96,7 @@ function parseVerification(raw: unknown): VerificationResponse {
     const answerValue = data.answer;
     const verifiedValue = data.verified
       ?? data.is_verified
+      ?? data.is_reasonable
       ?? data.is_evidence
       ?? data.is_reasonable_evidence
       ?? (typeof answerValue === 'boolean' ? answerValue : undefined);
