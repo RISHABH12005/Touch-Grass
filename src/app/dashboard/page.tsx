@@ -170,8 +170,8 @@ export default function Dashboard() {
                 </div>
               )}
               <div className="mt-auto flex items-center gap-2 pt-8 text-xs font-semibold text-[#809487]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#a8df78]" />
-                Live challenge from the JUET outdoor club
+                <span className={"h-1.5 w-1.5 rounded-full " + (challenge ? 'bg-[#a8df78]' : 'bg-[#809487]')} />
+                {challenge ? 'Live challenge from the JUET outdoor club' : 'Waiting for the next challenge'}
               </div>
             </div>
           </section>
