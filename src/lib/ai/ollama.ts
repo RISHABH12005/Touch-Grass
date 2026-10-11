@@ -167,7 +167,7 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     `Challenge: "${challengeDescription.slice(0, 2000)}"`,
   ].join('\n');
 
-  const dataUriMatch = imageBase64.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+  const dataUriMatch = imageBase64.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]*)$/);
   const imageMimeType = dataUriMatch?.[1] || 'image/jpeg';
   const image = dataUriMatch ? dataUriMatch[2] : imageBase64;
   if (!image || image.length > 8_000_000) {
