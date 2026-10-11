@@ -18,13 +18,68 @@ export interface VerificationResponse {
   reason: string;
 }
 
+const verificationFormat = {
+  type: 'object',
+  properties: {
+    verified: { type: 'boolean' },
+    confidence: { type: 'number' },
+    reason: { type: 'string' },
+  },
+  required: ['verified', 'confidence', 'reason'],
+  additionalProperties: false,
+};
+
+function parseJsonText(text: string): unknown {
+  const trimmed = text.trim();
+  const candidates = [
+    trimmed,
+    trimmed.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, ''),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Some models add a short preamble or a markdown fence despite JSON mode.
+    }
+  }
+
+  // Recover a single JSON object embedded in surrounding prose without trusting the prose.
+  for (let start = trimmed.indexOf('{'); start !== -1; start = trimmed.indexOf('{', start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < trimmed.length; index += 1) {
+      const character = trimmed[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === '\\\\') escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+
+      if (character === '"') inString = true;
+      else if (character === '{') depth += 1;
+      else if (character === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(trimmed.slice(start, index + 1));
+          } catch {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  throw new Error('Ollama returned invalid JSON');
+}
+
 function parseVerification(raw: unknown): VerificationResponse {
   if (typeof raw === 'string') {
-    try {
-      raw = JSON.parse(raw);
-    } catch {
-      throw new Error('Ollama returned invalid JSON');
-    }
+    raw = parseJsonText(raw);
   }
 
   if (!raw || typeof raw !== 'object') {
@@ -46,12 +101,12 @@ function parseVerification(raw: unknown): VerificationResponse {
 export async function verifyImage(challengeDescription: string, imageBase64: string): Promise<VerificationResponse> {
   const prompt = [
     'Determine whether the attached image provides reasonable visual evidence for the outdoor challenge below.',
-    'Return only a JSON object with this exact shape: {"verified": boolean, "confidence": number, "reason": "short explanation"}.',
+    'Return exactly one JSON object matching the required schema. Do not include analysis, markdown, or text outside the object.',
     'Use a confidence number between 0 and 1. Do not infer identity or exact location from the image.',
     `Challenge: "${challengeDescription.slice(0, 2000)}"`,
-  ].join('\n');
+  ].join('\\n');
 
-  const image = imageBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
+  const image = imageBase64.replace(/^data:image\\/[a-zA-Z0-9.+-]+;base64,/, '');
   if (!image || image.length > 8_000_000) {
     throw new Error('Image data is missing or too large');
   }
@@ -68,7 +123,8 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     ? {
         model: ollamaConfig.model,
         stream: false,
-        format: 'json',
+        think: false,
+        format: verificationFormat,
         messages: [{ role: 'user', content: prompt, images: [image] }],
       }
     : {
@@ -76,7 +132,7 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
         prompt,
         images: [image],
         stream: false,
-        format: 'json',
+        format: verificationFormat,
       };
 
   let response: Response;
