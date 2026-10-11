@@ -35,6 +35,8 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [completedToday, setCompletedToday] = useState(false);
+  const [nextChallengeAt, setNextChallengeAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,14 +44,23 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [challengeRes, statsRes] = await Promise.all([
+      const [challengeRes, statsRes, statusRes] = await Promise.all([
         fetch('/api/challenges', { cache: 'no-store' }),
         fetch(`/api/stats?userId=${encodeURIComponent(userData.id)}`, { cache: 'no-store' }),
+        fetch(`/api/challenges/status?userId=${encodeURIComponent(userData.id)}`, { cache: 'no-store' }),
       ]);
       if (!challengeRes.ok && challengeRes.status !== 404) throw new Error('Today’s challenge could not be loaded.');
       if (!statsRes.ok) throw new Error('Your progress could not be loaded.');
-      setChallenge(challengeRes.ok ? await challengeRes.json() : null);
-      setStats(await statsRes.json());
+      if (!statusRes.ok) throw new Error('Today’s challenge status could not be loaded.');
+      const [challengeData, statsData, statusData] = await Promise.all([
+        challengeRes.ok ? challengeRes.json() : null,
+        statsRes.json(),
+        statusRes.json() as Promise<{ completed?: boolean; nextChallengeAt?: string }>,
+      ]);
+      setChallenge(challengeData);
+      setStats(statsData);
+      setCompletedToday(statusData.completed === true);
+      setNextChallengeAt(typeof statusData.nextChallengeAt === 'string' ? statusData.nextChallengeAt : null);
     } catch (cause) {
       console.error('Error loading dashboard', cause);
       setError(cause instanceof Error ? cause.message : 'Something went wrong while loading your dashboard.');
@@ -57,6 +68,13 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!user || !nextChallengeAt) return;
+    const delay = Math.max(0, new Date(nextChallengeAt).getTime() - Date.now() + 500);
+    const timer = window.setTimeout(() => void loadDashboard(user), delay);
+    return () => window.clearTimeout(timer);
+  }, [loadDashboard, nextChallengeAt, user]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('tg_user');
@@ -135,7 +153,7 @@ export default function Dashboard() {
                   <p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#a8c79c]">A fresh start, every day</p>
                   <h1 id="challenges-title" className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">Today’s Challenges</h1>
                 </div>
-                <span className="rounded-full border border-[#b5dd9a]/15 bg-[#b5dd9a]/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8e8a9]">Today</span>
+                <span className={completedToday ? "rounded-full border border-[#a8df78]/25 bg-[#a8df78]/[0.1] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#d6edc2]" : "rounded-full border border-[#b5dd9a]/15 bg-[#b5dd9a]/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8e8a9]"}>{completedToday ? 'Completed' : 'Today'}</span>
               </div>
 
               {challenge ? (
@@ -168,17 +186,17 @@ export default function Dashboard() {
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#a8df78]/10 text-lg" aria-hidden="true">📷</span>
               </div>
               <div className="mt-7 rounded-2xl border border-white/[0.07] bg-[#0b1510] p-4">
-                <p className="font-bold text-[#e5eee5]">{challenge ? 'Complete today’s challenge' : 'Ready when a challenge is posted'}</p>
-                <p className="mt-2 text-sm leading-6 text-[#91a397]">{challenge ? 'Head outside, take a photo, and check in to record your moment.' : 'Your photo check-in will be available with the next challenge.'}</p>
+                <p className="font-bold text-[#e5eee5]">{completedToday ? 'Today’s challenge is complete' : challenge ? 'Complete today’s challenge' : 'Ready when a challenge is posted'}</p>
+                <p className="mt-2 text-sm leading-6 text-[#91a397]">{completedToday ? 'Nice work. Photo uploads are locked until tomorrow’s challenge opens.' : challenge ? 'Head outside, take a photo, and check in to record your moment.' : 'Your photo check-in will be available with the next challenge.'}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => router.push('/challenge')}
-              disabled={!challenge}
+              disabled={!challenge || completedToday}
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#a8df78] px-5 py-3 text-sm font-extrabold text-[#102015] transition duration-200 hover:-translate-y-0.5 hover:bg-[#c0ed96] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d3f2b4] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 motion-reduce:transition-none"
             >
-              Upload a photo <ArrowIcon />
+              {completedToday ? 'Completed for today' : 'Upload a photo'} {!completedToday && <ArrowIcon />}
             </button>
           </section>
 
