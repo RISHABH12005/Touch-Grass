@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyImage } from '@/lib/ai/ollama';
-import { getTodayChallenge } from '@/lib/challenges';
+import { getOrCreateTodayDailyChallenge, getTodayChallenge } from '@/lib/challenges';
 
 export async function POST(req: Request) {
   try {
@@ -16,33 +16,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No challenge available today' }, { status: 404 });
     }
 
-    // Find the daily challenge record for today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dailyChallenge = await prisma.dailyChallenge.findUnique({
-      where: { date: today },
-    });
+    // Create today's database assignment when the challenge API used its active-challenge fallback.
+    const dailyChallenge = await getOrCreateTodayDailyChallenge(challenge.id);
 
-    if (!dailyChallenge) {
-      return NextResponse.json({ error: 'Daily challenge not configured' }, { status: 500 });
-    }
-
-    // 1. AI Verification
     const verification = await verifyImage(challenge.description, imageBase64);
-
-    // 2. Record Submission
     const submission = await prisma.submission.create({
       data: {
         userId,
         dailyChallengeId: dailyChallenge.id,
-        image: imageBase64, // In MVP we store base64, production should use storage
+        image: imageBase64,
         verificationStatus: verification.verified ? 'verified' : 'rejected',
         confidence: verification.confidence,
         reason: verification.reason,
       },
     });
 
-    // 3. If verified, record completion
     if (verification.verified) {
       await prisma.completion.upsert({
         where: {
@@ -52,10 +40,7 @@ export async function POST(req: Request) {
           },
         },
         update: {},
-        create: {
-          userId,
-          dailyChallengeId: dailyChallenge.id,
-        },
+        create: { userId, dailyChallengeId: dailyChallenge.id },
       });
     }
 
@@ -65,8 +50,9 @@ export async function POST(req: Request) {
       reason: verification.reason,
       submissionId: submission.id,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Submission error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
