@@ -1,21 +1,63 @@
 # Touch Grass — JUET Outdoor Challenge
 
-A responsive web application that encourages students at **Jaypee University of Engineering and Technology (JUET), Guna** to spend time outdoors by completing one campus-focused challenge each day.
+**Touch Grass** is a campus-focused web app for the **Jaypee University of Engineering and Technology (JUET), Guna** community. It encourages students to step away from their screens, explore campus, and take part in a simple outdoor challenge each day.
 
 **Live app:** https://touch-grass-vert.vercel.app  
-**Repository:** https://github.com/RISHABH12005/Touch-Grass  
-**Demo video:** https://youtu.be/ot_mVIVPSqs
+**Demo video:** https://youtu.be/ot_mVIVPSqs  
+**Source code:** https://github.com/RISHABH12005/Touch-Grass
 
-Students register with their name, roll number, and official JUET student email, view the daily challenge, and submit a photo as evidence. The app tracks submissions, completions, streaks, and milestones.
+## What the project does
 
-## Stack
+Students can register with their name, roll number, and JUET student email, view the daily challenge, and upload a photo as evidence of their attempt. The app brings the challenge and progress-tracking experience into one place.
 
-- Next.js App Router, React, TypeScript, Tailwind CSS
-- PostgreSQL (Neon in production) and Prisma
-- Ollama local or Ollama Cloud vision-capable model for image verification
-- Vercel deployment; optional Cloudflare Tunnel for locally hosted services
+Key capabilities:
 
-## Local setup
+- **Daily outdoor challenges** designed around campus life.
+- **Photo submissions** so students can share evidence of completing a challenge.
+- **AI-assisted image verification** using a vision-capable Ollama model.
+- **Progress tracking** for submissions, completions, streaks, and milestones.
+- **Student registration** with roll-number and official email-domain validation.
+- **Web deployment** for students to access the app without running it locally.
+
+> Image verification is an automated aid, not definitive proof that a student completed a challenge, is the person in a photo, or was physically at a particular location.
+
+## Why I built it
+
+The idea is straightforward: encourage students to spend more time outdoors and make small campus activities easier to participate in. Daily challenges provide a simple prompt, while submissions and progress tracking help students keep their momentum.
+
+## Technology stack
+
+| Area | Technology |
+| --- | --- |
+| Application | Next.js App Router, React, TypeScript |
+| Styling | Tailwind CSS |
+| Database | PostgreSQL, Neon in production |
+| Database toolkit | Prisma |
+| Image verification | Ollama local or Ollama Cloud with a vision-capable model |
+| Deployment | Vercel |
+| Optional local-service access | Cloudflare Tunnel |
+
+## How the flow works
+
+1. A student registers using their name, roll number, and JUET student email.
+2. The student views the available daily outdoor challenge.
+3. The student completes the activity and submits a photo.
+4. The server sends the image for AI-assisted verification when configured.
+5. The application records submissions and tracks progress, streaks, and milestones.
+
+## Live demo
+
+Try the deployed application: **https://touch-grass-vert.vercel.app**
+
+Watch the walkthrough: **https://youtu.be/ot_mVIVPSqs**
+
+## Run locally
+
+### Prerequisites
+
+Install Node.js and npm, and make sure you have access to a PostgreSQL database. If you want to test image verification locally, install Ollama and a supported vision model as well.
+
+### Installation
 
 ```bash
 git clone https://github.com/RISHABH12005/Touch-Grass.git
@@ -23,7 +65,9 @@ cd Touch-Grass
 npm install
 ```
 
-Create a local `.env` from `.env.example`, then set `DATABASE_URL` to your dedicated Touch Grass PostgreSQL database. Never commit environment files or production secrets.
+Create a local `.env` file based on `.env.example` and configure `DATABASE_URL` to point to your dedicated Touch Grass PostgreSQL database.
+
+Then run:
 
 ```bash
 npx prisma generate
@@ -31,19 +75,23 @@ npx prisma db push
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Email registration
+Never commit `.env` files, production secrets, database credentials, API keys, or tunnel tokens.
 
-The app normalizes email addresses to lowercase and validates the official `@juetguna.in` domain. It prevents one student email from being linked to multiple roll numbers. This is **format/domain validation only**; it does not currently send an OTP or verify mailbox ownership. Add an email provider and verification-token flow before describing registration as email-verified.
+## Student email validation
 
-## Ollama image verification
+The application normalizes email addresses to lowercase and validates the official `@juetguna.in` domain. It also prevents one student email from being associated with multiple roll numbers.
 
-The server can use either a local Ollama instance or the direct Ollama Cloud API. Cloud requests are sent from the server, not the browser, so the API key stays private.
+**Important:** this is domain/format validation only. The app does not currently send an OTP or verify mailbox ownership. Do not describe registration as email-verified until an email provider and verification-token flow have been implemented.
 
-### Local model
+## Configure AI image verification with Ollama
 
-Set in `.env`:
+The server supports a local Ollama instance or the Ollama Cloud API. Cloud requests are made server-side so that the API key does not need to be exposed to the browser.
+
+### Option A: Local Ollama
+
+Add the following to your local `.env` file:
 
 ```dotenv
 OLLAMA_MODE=local
@@ -52,11 +100,11 @@ OLLAMA_MODEL=llava:latest
 OLLAMA_TIMEOUT_MS=45000
 ```
 
-Run Ollama and ensure the selected vision model is installed. A local endpoint is suitable for development, but Vercel cannot reach Ollama running only on your laptop through `localhost`.
+Start Ollama and ensure the selected vision model is installed. A local endpoint is useful for development, but a Vercel deployment cannot access Ollama running only on your computer through `localhost`.
 
-### Ollama Cloud
+### Option B: Ollama Cloud
 
-Create an API key from https://ollama.com/settings/keys and configure these environment variables in Vercel Project Settings → Environment Variables (and locally in `.env` when testing):
+Create an API key at [Ollama settings](https://ollama.com/settings/keys). Configure these variables in Vercel Project Settings → Environment Variables, and locally in `.env` when testing:
 
 ```dotenv
 OLLAMA_MODE=cloud
@@ -66,40 +114,49 @@ OLLAMA_MODEL=gemma4:cloud
 OLLAMA_TIMEOUT_MS=45000
 ```
 
-Choose a currently available **vision-capable** model from your Ollama Cloud account/model list. The example uses the Gemma 4 cloud model. Model availability and billing can change; confirm the selected vision-capable model is available and included in your Ollama account's usage or add the required credits before deploying. HTTP 402 usually means the selected model is not included in the account's current free usage. Never prefix the API key with `NEXT_PUBLIC_`, place it in client code, or commit it. After changing Vercel variables, redeploy.
+Choose a currently available **vision-capable** model shown in your Ollama Cloud account. The example model may not be available to every account; confirm model availability and usage/billing requirements before deploying. An HTTP 402 response commonly indicates a billing or model-access limitation. An HTTP 410 response can indicate that a model has been retired.
 
-The application expects a JSON object with `verified`, `confidence` (0–1), and `reason`; the parser also accepts several common alternative verdict fields. Review model output before relying on automated moderation; image verification can be wrong. If verification returns HTTP 402, check [Ollama usage and billing](https://ollama.com/settings) and choose a model enabled for your account. HTTP 410 indicates a retired model; update `OLLAMA_MODEL` to a currently available vision-capable model.
+The application expects a JSON object containing `verified`, `confidence` (from 0 to 1), and `reason`; the parser also accepts several common alternative verdict fields. Review model output before relying on automated moderation because image verification can be incorrect.
 
-## Cloudflare Tunnel (optional)
+**Security:** never prefix the API key with `NEXT_PUBLIC_`, put it in browser-side code, or commit it to the repository. After changing Vercel environment variables, redeploy the application.
 
-A quick tunnel can expose the local app for testing:
+## Optional: Cloudflare Tunnel
+
+A quick tunnel can expose a locally running app for temporary testing:
 
 ```bash
 npm run dev
 cloudflared tunnel --url http://localhost:3000
 ```
 
-Run those commands in separate terminals. The generated `trycloudflare.com` address is temporary and is not intended for production. For a persistent hostname, create a tunnel in Cloudflare Dashboard → Networking → Tunnels and follow [the official setup guide](https://developers.cloudflare.com/tunnel/get-started/). Store tunnel credentials only in the Cloudflare dashboard or the host's secret manager.
+Run the commands in separate terminals. The generated `trycloudflare.com` address is temporary and is not intended as a production hostname.
 
-Cloudflare Tunnel is optional for the Vercel deployment. It can be useful to make a local API/model reachable by Vercel, but require authentication/Cloudflare Access and never publish an unprotected Ollama API.
+For a persistent hostname, create a tunnel in the Cloudflare dashboard and follow the [Cloudflare Tunnel setup guide](https://developers.cloudflare.com/tunnel/get-started/). Keep tunnel credentials in Cloudflare or your host's secret manager. Cloudflare Tunnel is optional for the Vercel deployment. If using a tunnel to expose a local API or Ollama service, protect it with authentication/Cloudflare Access and never expose an unprotected Ollama API publicly.
 
 ## Deployment checklist
 
-- Set `DATABASE_URL` to the dedicated Touch Grass database.
-- Set a strong `ADMIN_SECRET`.
-- Select local/cloud Ollama mode and configure the required endpoint/key.
-- Do not add secrets to GitHub or expose them in client-side variables.
-- Redeploy after updating Vercel environment variables.
-- Test registration, dashboard, photo submission, and AI verification against the deployment.
+Before deploying or testing a production environment:
 
-## Data and security
+- [ ] Configure `DATABASE_URL` to use the dedicated Touch Grass PostgreSQL database.
+- [ ] Set a strong `ADMIN_SECRET`.
+- [ ] Configure the appropriate local or cloud Ollama mode and its required endpoint/key.
+- [ ] Keep secrets out of GitHub and client-side environment variables.
+- [ ] Redeploy after changing Vercel environment variables.
+- [ ] Test student registration, dashboard access, photo submission, and image verification in the deployed environment.
 
-- Admin endpoints use the server-side `ADMIN_SECRET`; send it in the `Authorization: Bearer …` header.
+## Data and security notes
+
+- Admin endpoints use the server-side `ADMIN_SECRET`; send it using the `Authorization: Bearer …` header.
 - Do not commit `.env` files, API keys, database URLs, or Cloudflare tunnel tokens.
-- The student ID is an application identifier. Limit access to student records.
-- Photo verification is not proof of identity or physical location.
-- Reward fulfilment is handled by organisers and is not automatically guaranteed.
+- A student ID is an application identifier; restrict access to student records.
+- Photo verification does not establish a student's identity or physical location.
+- Reward fulfilment is managed by the organisers and is not automatically guaranteed by the application.
+- Review data access and retention practices before using the app with real student submissions.
+
+## Contributing
+
+Contributions, bug reports, and suggestions are welcome. Open an issue in the [GitHub repository](https://github.com/RISHABH12005/Touch-Grass) with clear steps to reproduce a bug or a description of the proposed improvement.
 
 ## License
 
-See the repository's `LICENSE` file for reuse terms.
+See the repository's [LICENSE](https://github.com/RISHABH12005/Touch-Grass/blob/main/LICENSE) file for reuse terms.
