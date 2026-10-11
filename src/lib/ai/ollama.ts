@@ -31,20 +31,17 @@ const verificationFormat = {
 
 function parseJsonText(text: string): unknown {
   const trimmed = text.trim();
-  const candidates = [
-    trimmed,
-    trimmed.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, ''),
-  ];
+  const candidates = [trimmed];
 
   for (const candidate of candidates) {
     try {
       return JSON.parse(candidate);
     } catch {
-      // Some models add a short preamble or a markdown fence despite JSON mode.
+      // Some models add a short preamble or markdown despite JSON mode.
     }
   }
 
-  // Recover a single JSON object embedded in surrounding prose without trusting the prose.
+  // Recover a JSON object embedded in surrounding prose.
   for (let start = trimmed.indexOf('{'); start !== -1; start = trimmed.indexOf('{', start + 1)) {
     let depth = 0;
     let inString = false;
@@ -54,7 +51,7 @@ function parseJsonText(text: string): unknown {
       const character = trimmed[index];
       if (inString) {
         if (escaped) escaped = false;
-        else if (character === '\\\\') escaped = true;
+        else if (character === '\\') escaped = true;
         else if (character === '"') inString = false;
         continue;
       }
@@ -76,7 +73,6 @@ function parseJsonText(text: string): unknown {
 
   throw new Error('Ollama returned invalid JSON');
 }
-
 function parseVerification(raw: unknown): VerificationResponse {
   if (typeof raw === 'string') {
     raw = parseJsonText(raw);
@@ -104,9 +100,9 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     'Return exactly one JSON object matching the required schema. Do not include analysis, markdown, or text outside the object.',
     'Use a confidence number between 0 and 1. Do not infer identity or exact location from the image.',
     `Challenge: "${challengeDescription.slice(0, 2000)}"`,
-  ].join('\\n');
+  ].join('\n');
 
-  const image = imageBase64.replace(/^data:image\\/[a-zA-Z0-9.+-]+;base64,/, '');
+  const image = imageBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
   if (!image || image.length > 8_000_000) {
     throw new Error('Image data is missing or too large');
   }
