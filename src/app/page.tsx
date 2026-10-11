@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/ui/PageContainer';
 import Button from '@/components/ui/Button';
@@ -9,7 +9,25 @@ export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: '', studentId: '', studentEmail: '' });
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('tg_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser) as { id?: unknown; name?: unknown };
+        if (user?.id && typeof user.name === 'string' && user.name.trim()) {
+          router.replace('/dashboard');
+          return;
+        }
+      } catch {
+        // Clear malformed session data and show the registration form.
+      }
+      localStorage.removeItem('tg_user');
+    }
+    setCheckingSession(false);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +44,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         localStorage.setItem('tg_user', JSON.stringify(data));
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
         setError(data.error || 'Registration failed');
       }
@@ -38,6 +56,16 @@ export default function LoginPage() {
   };
 
   const inputClass = 'w-full rounded-xl border border-[#dce3d8] bg-[#fbfcf9] px-4 py-3.5 text-[#203426] outline-none transition placeholder:text-[#a1aba0] hover:border-[#a9bda2] focus:border-[#47784b] focus:ring-4 focus:ring-[#47784b]/10';
+
+  if (checkingSession) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-black px-4 text-white">
+        <p role="status" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-semibold text-white/80">
+          Checking your session…
+        </p>
+      </main>
+    );
+  }
 
   return (
     <PageContainer className="relative flex items-center justify-center overflow-hidden min-h-screen bg-black px-4 py-10 sm:px-6 lg:py-16">
