@@ -11,7 +11,7 @@ const baseUrl = isCloud
 export const ollamaConfig = {
   mode: isCloud ? 'cloud' : 'local',
   baseUrl,
-  model: process.env.OLLAMA_MODEL || (isCloud ? 'qwen3-vl:235b-cloud' : 'llava:latest'),
+  model: process.env.OLLAMA_MODEL || (isCloud ? 'kimi-k3:cloud' : 'llava:latest'),
 };
 
 export interface VerificationResponse {
@@ -223,6 +223,12 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     console.error('Ollama API error:', response.status, detail.slice(0, 500));
     if (response.status === 401 || response.status === 403) {
       throw new Error('Ollama authentication failed. Check OLLAMA_API_KEY.');
+    }
+    if (response.status === 410) {
+      throw new Error(`The configured Ollama model (\${ollamaConfig.model}) has been retired. Update OLLAMA_MODEL to an available vision-capable cloud model.`);
+    }
+    if (response.status === 404) {
+      throw new Error(`The configured Ollama model or endpoint was not found (\${ollamaConfig.model}). Check OLLAMA_MODEL and OLLAMA_CLOUD_BASE_URL.`);
     }
     throw new Error(`Ollama verification failed (HTTP ${response.status}). Check the configured model and endpoint.`);
   }
