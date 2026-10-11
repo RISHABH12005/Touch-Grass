@@ -18,35 +18,148 @@ export interface VerificationResponse {
   reason: string;
 }
 
-function parseVerification(raw: unknown): VerificationResponse {
-  if (typeof raw === 'string') {
+const verificationFormat = {
+  type: 'object',
+  properties: {
+    verified: { type: 'boolean' },
+    confidence: { type: 'number' },
+    reason: { type: 'string' },
+  },
+  required: ['verified', 'confidence', 'reason'],
+  additionalProperties: false,
+};
+
+function parseJsonText(text: string): unknown {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+
+  for (const candidate of candidates) {
     try {
-      raw = JSON.parse(raw);
+      return JSON.parse(candidate);
     } catch {
-      throw new Error('Ollama returned invalid JSON');
+      // Some models add a short preamble or markdown despite JSON mode.
     }
   }
 
-  if (!raw || typeof raw !== 'object') {
-    throw new Error('Ollama returned an invalid response');
+  // Recover a JSON object embedded in surrounding prose.
+  for (let start = trimmed.indexOf('{'); start !== -1; start = trimmed.indexOf('{', start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < trimmed.length; index += 1) {
+      const character = trimmed[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+
+      if (character === '"') inString = true;
+      else if (character === '{') depth += 1;
+      else if (character === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(trimmed.slice(start, index + 1));
+          } catch {
+            break;
+          }
+        }
+      }
+    }
   }
 
-  const data = raw as Record<string, unknown>;
-  if (typeof data.verified !== 'boolean' || typeof data.confidence !== 'number' || typeof data.reason !== 'string') {
-    throw new Error('Ollama response must contain verified, confidence, and reason fields');
+  throw new Error('Ollama returned invalid JSON');
+}
+function parseVerification(raw: unknown): VerificationResponse {
+  // Ollama models may return a JSON string, or wrap structured output in
+  // common envelope keys. Unwrap only known fields and keep validation strict.
+  for (let depth = 0; depth < 3; depth += 1) {
+    if (typeof raw === 'string') {
+      raw = parseJsonText(raw);
+    }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new Error('Ollama returned an invalid response');
+    }
+
+    const data = raw as Record<string, unknown>;
+    const nested = data.verification ?? data.result ?? data.data ?? data.output;
+    if (nested !== undefined && nested !== raw) {
+      raw = nested;
+      continue;
+    }
+
+    const answerValue = data.answer;
+    const verifiedValue = data.verified
+      ?? data.is_verified
+      ?? data.is_evidence
+      ?? data.is_reasonable_evidence
+      ?? (typeof answerValue === 'boolean' ? answerValue : undefined);
+    const confidenceValue = data.confidence ?? data.confidence_score;
+    const answerToken = typeof answerValue === 'string'
+      ? answerValue.trim().toLowerCase().replace(/[.!]$/, '')
+      : '';
+    const answerVerdict = /^(true|yes|verified|sufficient|sufficient evidence)$/.test(answerToken)
+      ? true
+      : /^(false|no|rejected|insufficient|insufficient evidence)$/.test(answerToken)
+        ? false
+        : typeof answerValue === 'string' && /^(yes|correct|verified)\b/i.test(answerValue.trim())
+          ? true
+          : typeof answerValue === 'string' && /^(no|incorrect|unverified)\b/i.test(answerValue.trim())
+            ? false
+            : typeof answerValue === 'string' && /\b(insufficient evidence|not reasonable evidence|does not show|doesn't show|fails to show|unrelated to the challenge|cannot verify|no evidence|does not match|doesn't match)\b/i.test(answerValue)
+              ? false
+              : typeof answerValue === 'string' && /\b(reasonable evidence|sufficient evidence|matches the challenge|meets the challenge|clearly shows the activity|depicts an? (outdoor )?(sport|sports activity))\b/i.test(answerValue)
+                ? true
+                : undefined;
+    const reasonValue = data.reason
+      ?? data.explanation
+      ?? (answerVerdict === undefined && typeof answerValue === 'string' ? answerValue : undefined);
+
+    const verified = typeof verifiedValue === 'boolean'
+      ? verifiedValue
+      : typeof verifiedValue === 'string' && /^(true|false)$/i.test(verifiedValue)
+        ? verifiedValue.toLowerCase() === 'true'
+        : verifiedValue === undefined
+          ? answerVerdict
+          : undefined;
+    let confidence = typeof confidenceValue === 'number'
+      ? confidenceValue
+      : typeof confidenceValue === 'string' && confidenceValue.trim() !== ''
+        ? Number(confidenceValue)
+        : Number.NaN;
+
+    // Some models report a percentage instead of a 0-1 confidence value.
+    if (confidence > 1 && confidence <= 100) confidence /= 100;
+
+    if (verified !== undefined && Number.isFinite(confidence) && confidence >= 0 && confidence <= 1 && (typeof reasonValue === 'string' || reasonValue === undefined)) {
+      return {
+        verified,
+        confidence,
+        reason: typeof reasonValue === 'string'
+          ? reasonValue.slice(0, 1000)
+          : verified
+            ? 'The image was marked as sufficient evidence for this challenge.'
+            : 'The image was marked as insufficient evidence for this challenge.',
+      };
+    }
+
+    // Log only keys and value types; never log model text or uploaded image data.
+    console.error('Ollama verification response shape:', Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, Array.isArray(value) ? 'array' : typeof value]),
+    ));
+    throw new Error('Ollama returned an unsupported verification response shape');
   }
 
-  return {
-    verified: data.verified,
-    confidence: Math.min(1, Math.max(0, data.confidence)),
-    reason: data.reason.slice(0, 1000),
-  };
+  throw new Error('Ollama returned an unsupported verification response shape');
 }
 
 export async function verifyImage(challengeDescription: string, imageBase64: string): Promise<VerificationResponse> {
   const prompt = [
     'Determine whether the attached image provides reasonable visual evidence for the outdoor challenge below.',
-    'Return only a JSON object with this exact shape: {"verified": boolean, "confidence": number, "reason": "short explanation"}.',
+    'Return exactly one JSON object matching the required schema. Do not include analysis, markdown, or text outside the object.',
     'Use a confidence number between 0 and 1. Do not infer identity or exact location from the image.',
     `Challenge: "${challengeDescription.slice(0, 2000)}"`,
   ].join('\n');
@@ -68,7 +181,8 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
     ? {
         model: ollamaConfig.model,
         stream: false,
-        format: 'json',
+        think: false,
+        format: verificationFormat,
         messages: [{ role: 'user', content: prompt, images: [image] }],
       }
     : {
@@ -76,7 +190,7 @@ export async function verifyImage(challengeDescription: string, imageBase64: str
         prompt,
         images: [image],
         stream: false,
-        format: 'json',
+        format: verificationFormat,
       };
 
   let response: Response;

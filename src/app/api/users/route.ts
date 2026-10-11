@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { createSessionToken, getSessionUserId, sessionMaxAge, SESSION_COOKIE } from '@/lib/auth/session';
 
 const JUET_EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@juetguna\.in$/i;
 
@@ -33,7 +34,15 @@ export async function POST(req: Request) {
       create: { name, studentId, studentEmail },
     });
 
-    return NextResponse.json(user);
+    const response = NextResponse.json({ id: user.id, name: user.name, studentId: user.studentId, studentEmail: user.studentEmail });
+    response.cookies.set(SESSION_COOKIE, createSessionToken(user.id), {
+      httpOnly: true,
+      secure: new URL(req.url).protocol === 'https:',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: sessionMaxAge,
+    });
+    return response;
   } catch (error: unknown) {
     console.error('User Upsert Error:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json({ error: 'Unable to register right now. Please try again.' }, { status: 500 });
@@ -41,12 +50,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const studentId = searchParams.get('studentId')?.trim().toUpperCase();
-  if (!studentId) return NextResponse.json({ error: 'studentId required' }, { status: 400 });
+  const userId = getSessionUserId(req);
+  if (!userId) return NextResponse.json({ error: 'Sign in to continue' }, { status: 401 });
 
   try {
-    const user = await prisma.user.findUnique({ where: { studentId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, studentId: true, studentEmail: true },
+    });
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
     return NextResponse.json(user);
   } catch (error: unknown) {

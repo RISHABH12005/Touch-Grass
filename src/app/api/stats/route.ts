@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { calculateUserStats } from '@/lib/streak';
 import { getNextMilestone } from '@/lib/milestones';
+import { getSessionUserId } from '@/lib/auth/session';
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('userId');
-  if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+  const userId = getSessionUserId(req);
+  if (!userId) return NextResponse.json({ error: 'Sign in to continue' }, { status: 401 });
 
   try {
     const stats = await calculateUserStats(userId);

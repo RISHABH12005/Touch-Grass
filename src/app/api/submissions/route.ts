@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyImage } from '@/lib/ai/ollama';
-import { getTodayChallenge } from '@/lib/challenges';
+import { getOrCreateTodayDailyChallenge, getTodayChallenge } from '@/lib/challenges';
+import { getSessionUserId } from '@/lib/auth/session';
 
 export async function POST(req: Request) {
   try {
-    const { userId, imageBase64 } = await req.json();
+    const userId = getSessionUserId(req);
+    if (!userId) return NextResponse.json({ error: 'Sign in to submit a challenge' }, { status: 401 });
+    const { imageBase64 } = await req.json();
 
-    if (!userId || !imageBase64) {
+    if (typeof imageBase64 !== 'string' || !imageBase64) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -16,33 +19,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No challenge available today' }, { status: 404 });
     }
 
-    // Find the daily challenge record for today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dailyChallenge = await prisma.dailyChallenge.findUnique({
-      where: { date: today },
+    // Reuse today's assignment and refuse another submission once this user has completed it.
+    const dailyChallenge = await getOrCreateTodayDailyChallenge(challenge.id);
+    const existingCompletion = await prisma.completion.findUnique({
+      where: {
+        userId_dailyChallengeId: {
+          userId,
+          dailyChallengeId: dailyChallenge.id,
+        },
+      },
+      select: { id: true },
     });
-
-    if (!dailyChallenge) {
-      return NextResponse.json({ error: 'Daily challenge not configured' }, { status: 500 });
+    if (existingCompletion) {
+      return NextResponse.json({
+        success: false,
+        completed: true,
+        error: 'Today’s challenge is already complete. Your next challenge opens tomorrow.',
+      }, { status: 409 });
     }
 
-    // 1. AI Verification
     const verification = await verifyImage(challenge.description, imageBase64);
-
-    // 2. Record Submission
     const submission = await prisma.submission.create({
       data: {
         userId,
         dailyChallengeId: dailyChallenge.id,
-        image: imageBase64, // In MVP we store base64, production should use storage
+        image: imageBase64,
         verificationStatus: verification.verified ? 'verified' : 'rejected',
         confidence: verification.confidence,
         reason: verification.reason,
       },
     });
 
-    // 3. If verified, record completion
     if (verification.verified) {
       await prisma.completion.upsert({
         where: {
@@ -52,10 +59,7 @@ export async function POST(req: Request) {
           },
         },
         update: {},
-        create: {
-          userId,
-          dailyChallengeId: dailyChallenge.id,
-        },
+        create: { userId, dailyChallengeId: dailyChallenge.id },
       });
     }
 
@@ -65,8 +69,9 @@ export async function POST(req: Request) {
       reason: verification.reason,
       submissionId: submission.id,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Submission error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
