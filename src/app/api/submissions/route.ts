@@ -16,8 +16,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No challenge available today' }, { status: 404 });
     }
 
-    // Create today's database assignment when the challenge API used its active-challenge fallback.
+    // Reuse today's assignment and refuse another submission once this user has completed it.
     const dailyChallenge = await getOrCreateTodayDailyChallenge(challenge.id);
+    const existingCompletion = await prisma.completion.findUnique({
+      where: {
+        userId_dailyChallengeId: {
+          userId,
+          dailyChallengeId: dailyChallenge.id,
+        },
+      },
+      select: { id: true },
+    });
+    if (existingCompletion) {
+      return NextResponse.json({
+        success: false,
+        completed: true,
+        error: 'Today’s challenge is already complete. Your next challenge opens tomorrow.',
+      }, { status: 409 });
+    }
 
     const verification = await verifyImage(challenge.description, imageBase64);
     const submission = await prisma.submission.create({
