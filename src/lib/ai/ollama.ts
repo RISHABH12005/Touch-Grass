@@ -105,13 +105,13 @@ function parseVerification(raw: unknown): VerificationResponse {
       ? true
       : /^(false|no|rejected|insufficient|insufficient evidence)$/.test(answerToken)
         ? false
-        : typeof answerValue === 'string' && /^(yes|correct|verified)\\b/i.test(answerValue.trim())
+        : typeof answerValue === 'string' && /^(yes|correct|verified)\b/i.test(answerValue.trim())
           ? true
-          : typeof answerValue === 'string' && /^(no|incorrect|unverified)\\b/i.test(answerValue.trim())
+          : typeof answerValue === 'string' && /^(no|incorrect|unverified)\b/i.test(answerValue.trim())
             ? false
-            : typeof answerValue === 'string' && /\\b(insufficient evidence|not reasonable evidence|does not show|doesn't show|fails to show|unrelated to the challenge|cannot verify|no evidence|does not match|doesn't match)\\b/i.test(answerValue)
+            : typeof answerValue === 'string' && /\b(insufficient evidence|not reasonable evidence|does not show|doesn't show|fails to show|unrelated to the challenge|cannot verify|no evidence|does not match|doesn't match)\b/i.test(answerValue)
               ? false
-              : typeof answerValue === 'string' && /\\b(reasonable evidence|sufficient evidence|matches the challenge|meets the challenge|clearly shows the activity|depicts an? (outdoor )?(sport|sports activity))\\b/i.test(answerValue)
+              : typeof answerValue === 'string' && /\b(reasonable evidence|sufficient evidence|matches the challenge|meets the challenge|clearly shows the activity|depicts an? (outdoor )?(sport|sports activity))\b/i.test(answerValue)
                 ? true
                 : undefined;
     const reasonValue = data.reason
