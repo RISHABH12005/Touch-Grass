@@ -1,31 +1,30 @@
-# Touch Grass 🌱 — Turning Screen Time into Outdoor Time
+# Touch Grass — Turning Screen Time into Outdoor Time
 
 *Submission for the [Hacktoberfest Open-Source AI Challenge — Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).*
 
 ## Project Overview
 
-**Touch Grass** is an AI-assisted outdoor challenge platform created for students at Jaypee University of Engineering and Technology (JUET), Guna. The project is built around a simple idea: encourage students to take breaks from screens, spend more time outdoors, and explore the world around their campus through small, achievable daily activities.
+**Touch Grass** is an AI-assisted outdoor challenge platform created for students at Jaypee University of Engineering and Technology (JUET), Guna. The project encourages students to take breaks from screens, spend more time outdoors, and explore their campus through small, achievable daily activities.
 
-The platform turns that idea into a daily experience. Students can discover a campus-focused challenge, upload a photo showing their attempt, and follow their participation through a personalized dashboard. AI-assisted image verification helps review photo submissions, while progress tracking adds a sense of continuity and achievement.
+Students can discover a campus-focused challenge, upload a photo showing their attempt, and track their participation through a personalized dashboard. AI-assisted image verification helps review photo submissions, while progress tracking supports consistency and achievement.
 
 ## Features
 
-- **Daily outdoor challenges:** Discover activities designed to encourage students to step outside and engage with campus life.
+- **Daily outdoor challenges:** Discover activities that encourage students to step outside and engage with campus life.
 - **Photo-based submissions:** Submit a photo as evidence of attempting a challenge.
 - **AI-assisted image review:** Use a vision-capable model to help assess submitted images.
 - **Activity tracking:** Keep track of submissions, completed challenges, and personal progress.
-- **Streaks and milestones:** Make participation more engaging by highlighting consistency and achievements.
+- **Streaks and milestones:** Highlight consistency and achievements.
 - **Personalized dashboard:** View challenge details and activity progress in one place.
 
-Touch Grass is designed around the JUET student experience, but the core concept can be adapted for other campuses, schools, and communities.
+Touch Grass is designed around the JUET student experience, but the concept can be adapted for other campuses, schools, and communities.
 
 ## Live Demo
 
 - **Website / Student Dashboard:** [https://touch-grass-vert.vercel.app/dashboard](https://touch-grass-vert.vercel.app/dashboard)
 - **Demo Video:** [Watch the project walkthrough](https://youtu.be/ot_mVlVPSqs)
-- **Source Code:** [RISHABH12005/Touch-Grass on GitHub](https://github.com/RISHABH12005/Touch-Grass)
 
-The live application lets visitors explore the deployed experience. The demo video provides a walkthrough of the project.
+The live application demonstrates the deployed experience, while the demo video provides a walkthrough of the project.
 
 ## How It Works
 
@@ -35,7 +34,7 @@ The live application lets visitors explore the deployed experience. The demo vid
 4. A vision-capable AI model helps assess the submitted image.
 5. The application records participation and updates progress information, including streaks and milestones where applicable.
 
-AI image verification is intended to assist submission review. It should not be treated as definitive proof of a student's identity or physical location, and model results can be mistaken.
+AI image verification is intended to assist submission review. It is not definitive proof of a student's identity or physical location, and model results can be mistaken.
 
 ## Technology Stack
 
@@ -47,15 +46,15 @@ AI image verification is intended to assist submission review. It should not be 
 
 ## Why I Built It
 
-Students spend a significant amount of their day using laptops and phones for study, communication, and entertainment. I wanted to explore how technology could encourage a healthier balance rather than demand more screen time for its own sake.
+Students spend a significant part of their day using laptops and phones for study, communication, and entertainment. I wanted to explore how technology could encourage a healthier balance rather than demand more screen time for its own sake.
 
-Touch Grass uses simple daily prompts to make stepping outdoors feel approachable. Photo submissions provide a lightweight way to participate, and progress tracking can help students build a habit over time. The aim is not to replace real-world experiences with an app; it is to use the app as a prompt to get outside.
+Touch Grass uses daily prompts to make stepping outdoors feel approachable. Photo submissions provide a lightweight way to participate, and progress tracking can help students build a habit over time. The aim is not to replace real-world experiences with an app; it is to use the app as a prompt to get outside.
 
 ## Why Open Innovation Matters
 
-Open innovation gives developers and communities the opportunity to inspect, adapt, and improve ideas together. By building with open-source technologies and an adaptable AI integration, Touch Grass can be explored and extended by other contributors rather than being limited to a single fixed implementation.
+Open innovation gives developers and communities the opportunity to inspect, adapt, and improve ideas together. By using open-source technologies and an adaptable AI integration, Touch Grass can be explored and extended by other contributors rather than being limited to a single fixed implementation.
 
-Ollama supports experimentation with vision-capable models in local or cloud environments, depending on configuration and model availability. This flexibility makes it possible to evaluate different options as the project evolves. Other developers can also contribute interface improvements, challenge ideas, verification safeguards, accessibility enhancements, and adaptations for their own communities.
+Ollama supports experimentation with vision-capable models in local or cloud environments, depending on configuration and model availability. This flexibility makes it possible to evaluate different options as the project evolves. Other developers can contribute interface improvements, challenge ideas, verification safeguards, accessibility enhancements, and adaptations for their own communities.
 
 For me, open source is more than publishing code: it is an invitation for other people to learn from a project, suggest improvements, and build on the idea.
 
@@ -65,7 +64,7 @@ The application uses a vision-capable model to help assess submitted challenge p
 
 ## Development Session
 
-No agent-session or DevRelay recording link is included in this submission. Add one here if you have a shareable session recording that documents the development workflow.
+No agent-session or DevRelay recording link is included in this submission.
 
 ## Challenge Categories
 
@@ -75,4 +74,4 @@ This project includes an Ollama-based, vision-capable model integration for AI-a
 
 **Built around one simple thought: technology can sometimes help us spend less time on our screens and more time in the real world.**
 
-**Let's touch grass. 🌱**
+**Let's touch grass.**
