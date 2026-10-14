@@ -20,7 +20,8 @@
     "next": "16.4.0",
     "prisma": "^5.22.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "heic2any": "^0.0.4"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
