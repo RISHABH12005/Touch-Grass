@@ -36,6 +36,25 @@ The live application demonstrates the deployed experience, while the demo video 
 
 AI image verification is intended to assist submission review. It is not definitive proof of a student's identity or physical location, and model results can be mistaken.
 
+## Student Email Verification
+
+Student registration uses a one-time email code before creating a session:
+
+1. Enter the JUET roll number, name, and official `@juetguna.in` email address.
+2. Touch Grass emails a 6-digit verification code to that address.
+3. Enter the code to finish registration and sign in.
+4. The code expires after **5 minutes**. A new code can be requested after a short resend cooldown, and repeated incorrect attempts are limited.
+
+Email delivery uses [Resend](https://resend.com/). Configure these server-side environment variables in Vercel (Production and Preview as needed), or in your local `.env`:
+
+```dotenv
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=Touch Grass <verify@your-verified-domain.com>
+SESSION_SECRET=your_long_random_secret
+```
+
+Verify the sender domain in Resend before sending to student email addresses. Never expose these values through `NEXT_PUBLIC_*` variables or commit them to Git. If these variables are missing or the sender is not authorized, registration will not be able to send verification codes.
+
 ## Technology Stack
 
 - **Next.js App Router, React, and TypeScript** — application structure, interactive UI, and server-side functionality.
