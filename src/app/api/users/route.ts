@@ -120,6 +120,7 @@ export async function POST(req: Request) {
       requiresVerification: true,
       message: 'A 6-digit verification code was sent to ' + studentEmail + '. It expires in 5 minutes.',
       email: studentEmail,
+      expiresAt: pending.expiresAt,
     });
     setPendingCookie(response, req, pending);
     return response;
