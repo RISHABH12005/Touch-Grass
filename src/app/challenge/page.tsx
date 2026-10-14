@@ -16,6 +16,7 @@ const isHeicFilename = (name: string) => ['.heic', '.heif'].some((extension) => 
 export default function ChallengePage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<User | null>(null);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [challengeLoading, setChallengeLoading] = useState(true);
@@ -362,6 +363,14 @@ export default function ChallengePage() {
                     <span className="text-base font-extrabold text-[#edf5e9]">{dragActive ? 'Drop your photo to add it' : 'Take or choose a photo'}</span>
                     <span className="mt-2 text-sm font-semibold text-[#a8df78] underline underline-offset-4">Tap to open camera or photo library</span>
                     <span id="upload-hint" className="mt-3 text-xs text-[#809286]">Phone camera or photo library · up to 5 MB</span>
+                    <button
+                      type="button"
+                      onClick={(event) => { event.preventDefault(); event.stopPropagation(); cameraInputRef.current?.click(); }}
+                      disabled={!challenge || uploading || completedToday || completionLoading || Boolean(completionError)}
+                      className="mt-5 rounded-full border border-[#a8df78]/40 bg-[#a8df78]/10 px-5 py-2.5 text-sm font-bold text-[#c5ed9f] transition-colors hover:bg-[#a8df78]/20 disabled:opacity-40"
+                    >
+                      Open camera
+                    </button>
                   </>
                 ) : (
                   <span className="mt-auto rounded-full border border-white/15 bg-black/50 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm">Choose a different photo</span>
@@ -376,6 +385,17 @@ export default function ChallengePage() {
                 disabled={!challenge || uploading || completedToday || completionLoading || Boolean(completionError)}
                 className="peer sr-only"
                 aria-describedby="upload-hint"
+              />
+              <input
+                ref={cameraInputRef}
+                id="challenge-camera"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileChange}
+                disabled={!challenge || uploading || completedToday || completionLoading || Boolean(completionError)}
+                className="sr-only"
+                aria-label="Take a photo with your camera"
               />
               {imageBase64 && !uploading && !completedToday && (
                 <button
