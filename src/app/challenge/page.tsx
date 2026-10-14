@@ -11,7 +11,7 @@ type UploadStatus = 'idle' | 'success' | 'error';
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
-const HEIC_EXTENSIONS = /\\.(heic|heif)$/i;
+const isHeicFilename = (name: string) => ['.heic', '.heif'].some((extension) => name.toLowerCase().endsWith(extension));
 
 export default function ChallengePage() {
   const router = useRouter();
@@ -96,7 +96,7 @@ export default function ChallengePage() {
     setStatus('idle');
     setErrorMessage('');
 
-    const isHeic = /image\\/(heic|heif)/i.test(file.type) || HEIC_EXTENSIONS.test(file.name);
+    const isHeic = ['image/heic', 'image/heif'].includes(file.type.toLowerCase()) || isHeicFilename(file.name);
     if (!ACCEPTED_TYPES.includes(file.type) && !isHeic) {
       setStatus('error');
       setErrorMessage('Please choose a JPEG, PNG, WEBP, HEIC, or HEIF photo.');
@@ -118,7 +118,7 @@ export default function ChallengePage() {
         const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
         uploadFile = new File(
           [jpegBlob],
-          file.name.replace(/\\.(heic|heif)$/i, '.jpg'),
+          file.name.replace(/\.(heic|heif)$/i, '.jpg'),
           { type: 'image/jpeg', lastModified: Date.now() },
         );
       }
