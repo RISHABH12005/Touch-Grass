@@ -14,6 +14,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Enforce the 5 MiB image limit on the server as well as in the browser.
+    const imageMatch = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+=*)$/.exec(imageBase64);
+    if (!imageMatch) {
+      return NextResponse.json({ error: 'Upload a valid JPEG, PNG, or WEBP photo.' }, { status: 400 });
+    }
+    const encodedImage = imageMatch[2];
+    const decodedBytes = Math.floor((encodedImage.length * 3) / 4) -
+      (encodedImage.endsWith('==') ? 2 : encodedImage.endsWith('=') ? 1 : 0);
+    if (decodedBytes > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'That photo is over 5 MB. Choose a smaller image.' }, { status: 413 });
+    }
+
     const challenge = await getTodayChallenge();
     if (!challenge) {
       return NextResponse.json({ error: 'No challenge available today' }, { status: 404 });
