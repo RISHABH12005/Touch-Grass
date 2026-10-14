@@ -10,7 +10,8 @@ type Challenge = { id: string; title: string; description: string };
 type UploadStatus = 'idle' | 'success' | 'error';
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+const HEIC_EXTENSIONS = /\\.(heic|heif)$/i;
 
 export default function ChallengePage() {
   const router = useRouter();
@@ -90,14 +91,15 @@ export default function ChallengePage() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  const selectFile = (file?: File) => {
+  const selectFile = async (file?: File) => {
     if (!file || completedToday || completionLoading || completionError) return;
     setStatus('idle');
     setErrorMessage('');
 
-    if (!ACCEPTED_TYPES.includes(file.type)) {
+    const isHeic = /image\\/(heic|heif)/i.test(file.type) || HEIC_EXTENSIONS.test(file.name);
+    if (!ACCEPTED_TYPES.includes(file.type) && !isHeic) {
       setStatus('error');
-      setErrorMessage('Please choose a JPEG, PNG, or WEBP photo.');
+      setErrorMessage('Please choose a JPEG, PNG, WEBP, HEIC, or HEIF photo.');
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
@@ -106,22 +108,47 @@ export default function ChallengePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') {
+    try {
+      // Convert iPhone HEIC/HEIF images to JPEG so previews and AI verification work
+      // consistently across browsers and devices.
+      let uploadFile = file;
+      if (isHeic) {
+        const heic2any = (await import('heic2any')).default;
+        const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.88 });
+        const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+        uploadFile = new File(
+          [jpegBlob],
+          file.name.replace(/\\.(heic|heif)$/i, '.jpg'),
+          { type: 'image/jpeg', lastModified: Date.now() },
+        );
+      }
+
+      if (uploadFile.size > MAX_FILE_BYTES) {
         setStatus('error');
-        setErrorMessage('This photo could not be opened. Please choose another one.');
+        setErrorMessage('This photo is over 5 MB after conversion. Choose a smaller image.');
         return;
       }
-      setImageBase64(reader.result);
-      setPreviewUrl(URL.createObjectURL(file));
-      setFileName(file.name);
-    };
-    reader.onerror = () => {
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result !== 'string') {
+          setStatus('error');
+          setErrorMessage('This photo could not be opened. Please choose another one.');
+          return;
+        }
+        setImageBase64(reader.result);
+        setPreviewUrl(URL.createObjectURL(uploadFile));
+        setFileName(file.name);
+      };
+      reader.onerror = () => {
+        setStatus('error');
+        setErrorMessage('This photo could not be opened. Please choose another one.');
+      };
+      reader.readAsDataURL(uploadFile);
+    } catch {
       setStatus('error');
-      setErrorMessage('This photo could not be opened. Please choose another one.');
-    };
-    reader.readAsDataURL(file);
+      setErrorMessage('This photo could not be converted. Please try exporting it as JPEG or choosing another photo.');
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,7 +361,7 @@ export default function ChallengePage() {
                     </span>
                     <span className="text-base font-extrabold text-[#edf5e9]">{dragActive ? 'Drop your photo to add it' : 'Drop a photo here'}</span>
                     <span className="mt-2 text-sm font-semibold text-[#a8df78] underline underline-offset-4">or browse your files</span>
-                    <span id="upload-hint" className="mt-3 text-xs text-[#809286]">JPEG, PNG, or WEBP · up to 5 MB</span>
+                    <span id="upload-hint" className="mt-3 text-xs text-[#809286]">JPEG, PNG, WEBP, HEIC, or HEIF · up to 5 MB</span>
                   </>
                 ) : (
                   <span className="mt-auto rounded-full border border-white/15 bg-black/50 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm">Choose a different photo</span>
@@ -344,7 +371,7 @@ export default function ChallengePage() {
                 ref={inputRef}
                 id="challenge-photo"
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                 onChange={handleFileChange}
                 disabled={!challenge || uploading || completedToday || completionLoading || Boolean(completionError)}
                 className="peer sr-only"
