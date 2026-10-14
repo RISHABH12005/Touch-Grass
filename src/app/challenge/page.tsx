@@ -377,12 +377,12 @@ export default function ChallengePage() {
               </div>
             )}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="mt-5">
               <button
                 type="button"
                 onClick={() => void handleSubmit()}
                 disabled={!imageBase64 || !challenge || uploading || completionLoading || Boolean(completionError) || completedToday || status === 'success'}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#a8df78] px-5 py-3 text-sm font-extrabold text-[#102015] transition duration-200 hover:-translate-y-0.5 hover:bg-[#c0ed96] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d3f2b4] disabled:cursor-not-allowed disabled:bg-[#3a4b3d] disabled:text-[#8da092] disabled:hover:translate-y-0 motion-reduce:transition-none"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#a8df78] px-5 py-3 text-sm font-extrabold text-[#102015] transition duration-200 hover:-translate-y-0.5 hover:bg-[#c0ed96] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d3f2b4] disabled:cursor-not-allowed disabled:bg-[#3a4b3d] disabled:text-[#8da092] disabled:hover:translate-y-0 motion-reduce:transition-none"
               >
                 {completedToday ? 'Completed for today' : uploading ? (
                   <>
@@ -391,22 +391,13 @@ export default function ChallengePage() {
                   </>
                 ) : status === 'success' ? 'Verified and complete' : 'Submit for verification'}
               </button>
-              {status === 'success' ? (
+              {status === 'success' && (
                 <button
                   type="button"
                   onClick={() => router.push('/dashboard')}
-                  className="min-h-12 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-[#dce9dd] transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a8df78] motion-reduce:transition-none"
+                  className="mt-3 min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-[#dce9dd] transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a8df78] motion-reduce:transition-none"
                 >
                   Dashboard
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => inputRef.current?.click()}
-                  disabled={!challenge || uploading || completionLoading || Boolean(completionError) || completedToday}
-                  className="min-h-12 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-bold text-[#dce9dd] transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a8df78] disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none"
-                >
-                  {imageBase64 ? 'Replace photo' : 'Choose photo'}
                 </button>
               )}
             </div>
