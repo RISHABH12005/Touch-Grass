@@ -359,9 +359,9 @@ export default function ChallengePage() {
                     <span className={"mb-4 grid h-16 w-16 place-items-center rounded-2xl border border-[#a8df78]/15 bg-[#a8df78]/[0.08] text-3xl transition-transform " + (dragActive ? 'scale-110' : '') + ' motion-reduce:transition-none'} aria-hidden="true">
                       {dragActive ? '↓' : '📷'}
                     </span>
-                    <span className="text-base font-extrabold text-[#edf5e9]">{dragActive ? 'Drop your photo to add it' : 'Drop a photo here'}</span>
-                    <span className="mt-2 text-sm font-semibold text-[#a8df78] underline underline-offset-4">or browse your files</span>
-                    <span id="upload-hint" className="mt-3 text-xs text-[#809286]">JPEG, PNG, WEBP, HEIC, or HEIF · up to 5 MB</span>
+                    <span className="text-base font-extrabold text-[#edf5e9]">{dragActive ? 'Drop your photo to add it' : 'Take or choose a photo'}</span>
+                    <span className="mt-2 text-sm font-semibold text-[#a8df78] underline underline-offset-4">Tap to open camera or photo library</span>
+                    <span id="upload-hint" className="mt-3 text-xs text-[#809286]">Phone camera or photo library · up to 5 MB</span>
                   </>
                 ) : (
                   <span className="mt-auto rounded-full border border-white/15 bg-black/50 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm">Choose a different photo</span>
@@ -371,7 +371,7 @@ export default function ChallengePage() {
                 ref={inputRef}
                 id="challenge-photo"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+                accept="image/*"
                 onChange={handleFileChange}
                 disabled={!challenge || uploading || completedToday || completionLoading || Boolean(completionError)}
                 className="peer sr-only"
