@@ -77,7 +77,7 @@ export default function LoginPage() {
       }
       setOtpMode(true);
       setOtp('');
-      setOtpExpiresAt(Date.now() + 5 * 60 * 1000);
+      setOtpExpiresAt(typeof data.expiresAt === 'number' ? data.expiresAt : Date.now() + 5 * 60 * 1000);
       setRemainingSeconds(300);
       setError('');
     } catch {
@@ -183,8 +183,8 @@ export default function LoginPage() {
         <section className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
           <div className="mb-8">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#5b8050]">Your next chapter starts here</p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#1d3023] sm:text-4xl">Come on in.</h2>
-            <p className="mt-3 max-w-sm leading-6 text-[#6d786d]">Enter your JUET roll number, name, and student email to get started.</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#1d3023] sm:text-4xl">{otpMode ? 'Verify your email.' : 'Come on in.'}</h2>
+            <p className="mt-3 max-w-sm leading-6 text-[#6d786d]">{otpMode ? 'Enter the one-time code sent to your JUET student email.' : 'Enter your JUET roll number, name, and student email to get started.'}</p>
           </div>
 
           {otpMode ? (
