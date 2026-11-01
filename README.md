@@ -2,95 +2,83 @@
 
 *Submission for the [Hacktoberfest Open-Source AI Challenge — Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).*
 
-## Project Overview
+## What I Built
 
-**Touch Grass** is an AI-assisted outdoor challenge platform created for students at Jaypee University of Engineering and Technology (JUET), Guna. The project encourages students to take breaks from screens, spend more time outdoors, and explore their campus through small, achievable daily activities.
+**Touch Grass** is an AI-powered outdoor challenge platform built for students at Jaypee University of Engineering and Technology (JUET), Guna.
 
-Students can discover a campus-focused challenge, upload a photo showing their attempt, and track their participation through a personalized dashboard. AI-assisted image verification helps review photo submissions, while progress tracking supports consistency and achievement.
+Students spend a significant amount of time in front of screens for study, communication, and entertainment. I wanted to build something that encourages them to step outside, explore their campus, and reconnect with the world around them.
 
-## Features
+The platform turns going outdoors into a simple daily challenge. Students can:
 
-- **Daily outdoor challenges:** Discover activities that encourage students to step outside and engage with campus life.
-- **Photo-based submissions:** Submit a photo as evidence of attempting a challenge.
-- **AI-assisted image review:** Use a vision-capable model to help assess submitted images.
-- **Activity tracking:** Keep track of submissions, completed challenges, and personal progress.
-- **Streaks and milestones:** Highlight consistency and achievements.
-- **Personalized dashboard:** View challenge details and activity progress in one place.
+- Discover daily, campus-focused outdoor challenges.
+- Submit photos as evidence of attempting challenges.
+- Use AI-assisted image verification to help assess submissions.
+- Track daily activity, completed challenges, and streaks.
+- Earn milestones and celebrate their progress.
+- View their activity through a personalized dashboard.
 
-Touch Grass is designed around the JUET student experience, but the concept can be adapted for other campuses, schools, and communities.
+The goal is simple: make spending time outdoors more engaging through small, achievable actions and a sense of community.
 
-## Live Demo
+Touch Grass is designed for JUET students, but the underlying idea can be adapted for other campuses, schools, and communities.
 
-- **Website / Student Dashboard:** [https://touch-grass-vert.vercel.app/dashboard](https://touch-grass-vert.vercel.app/dashboard)
-- **Demo Video:** [Watch the project walkthrough](https://youtu.be/ot_mVlVPSqs)
+## Demo
 
-The live application demonstrates the deployed experience, while the demo video provides a walkthrough of the project.
+- **Live application:** [https://touch-grass-vert.vercel.app](https://touch-grass-vert.vercel.app)
+- **Demo video:** [Watch the project walkthrough](https://youtu.be/ot_mVlVPSqs)
+- **Source code:** [GitHub repository](https://github.com/RISHABH12005/Touch-Grass)
+
+The application uses a responsive interface so students can access challenges and submit photos from their devices.
 
 ## How It Works
 
 1. A student registers and opens their dashboard.
 2. The student views the available daily outdoor challenge.
-3. The student attempts the activity and submits a photo.
-4. A vision-capable AI model helps assess the submitted image.
-5. The application records participation and updates progress information, including streaks and milestones where applicable.
+3. They complete the activity outdoors and submit a photo.
+4. The server uses a vision-capable AI model to help assess the submitted image.
+5. The application records the submission and updates progress, streaks, and milestones.
 
-AI image verification is intended to assist submission review. It is not definitive proof of a student's identity or physical location, and model results can be mistaken.
-
-## Student Email Verification
-
-Student registration uses a one-time email code before creating a session:
-
-1. Enter the JUET roll number, name, and official `@juetguna.in` email address.
-2. Touch Grass emails a 6-digit verification code to that address.
-3. Enter the code to finish registration and sign in.
-4. The code expires after **5 minutes**. A new code can be requested after a short resend cooldown, and repeated incorrect attempts are limited.
-
-Email delivery uses [Resend](https://resend.com/). Configure these server-side environment variables in Vercel (Production and Preview as needed), or in your local `.env`:
-
-```dotenv
-RESEND_API_KEY=your_resend_api_key
-EMAIL_FROM=Touch Grass <verify@your-verified-domain.com>
-SESSION_SECRET=your_long_random_secret
-```
-
-Verify the sender domain in Resend before sending to student email addresses. Never expose these values through `NEXT_PUBLIC_*` variables or commit them to Git. If these variables are missing or the sender is not authorized, registration will not be able to send verification codes.
+AI verification assists the review workflow; it does not guarantee that a challenge was completed or prove a student's identity or physical location. Model results may be inaccurate and should be interpreted with appropriate caution.
 
 ## Technology Stack
 
-- **Next.js App Router, React, and TypeScript** — application structure, interactive UI, and server-side functionality.
-- **Tailwind CSS** — responsive styling.
-- **PostgreSQL and Prisma** — persistent data storage and database access.
-- **Ollama and vision-capable models** — AI-assisted review of submitted photos, using a local or cloud configuration.
-- **Vercel** — web application deployment.
+- **Next.js App Router, React, and TypeScript:** Application architecture, interactive interfaces, and server-side functionality.
+- **Tailwind CSS:** Responsive UI styling.
+- **PostgreSQL and Prisma:** Persistent storage for student records, challenges, submissions, and progress.
+- **Ollama and vision-capable models:** AI-assisted image review for submitted challenge photos.
+- **Vercel:** Deployment of the web application.
 
-## Why I Built It
+## How I Built It
 
-Students spend a significant part of their day using laptops and phones for study, communication, and entertainment. I wanted to explore how technology could encourage a healthier balance rather than demand more screen time for its own sake.
+I built Touch Grass using a modern full-stack web architecture, combining web technologies, database-backed progress tracking, and open-source AI tooling.
 
-Touch Grass uses daily prompts to make stepping outdoors feel approachable. Photo submissions provide a lightweight way to participate, and progress tracking can help students build a habit over time. The aim is not to replace real-world experiences with an app; it is to use the app as a prompt to get outside.
+The core workflow connects the student-facing dashboard to server-side submission handling, image assessment, and persistent progress records. Ollama provides an adaptable integration for running a vision-capable model locally or through Ollama Cloud, depending on the deployment configuration and model availability.
+
+This setup gives the project room to experiment with different models and deployment approaches without making the entire AI workflow dependent on a single proprietary provider.
 
 ## Why Open Innovation Matters
 
-Open innovation gives developers and communities the opportunity to inspect, adapt, and improve ideas together. By using open-source technologies and an adaptable AI integration, Touch Grass can be explored and extended by other contributors rather than being limited to a single fixed implementation.
+Open innovation matters because useful technology should be something people can understand, adapt, improve, and build upon.
 
-Ollama supports experimentation with vision-capable models in local or cloud environments, depending on configuration and model availability. This flexibility makes it possible to evaluate different options as the project evolves. Other developers can contribute interface improvements, challenge ideas, verification safeguards, accessibility enhancements, and adaptations for their own communities.
+For Touch Grass, using open-source technologies and an adaptable AI integration makes experimentation more accessible. Ollama provides flexibility to explore vision-capable models locally or through its cloud service, evaluate their results, and choose an approach that fits the application's needs and available resources.
 
-For me, open source is more than publishing code: it is an invitation for other people to learn from a project, suggest improvements, and build on the idea.
+Open source also makes collaboration possible. Other developers can inspect the implementation, suggest improvements, contribute features, and adapt the platform for their own campuses.
 
-## AI Use and Limitations
+Most importantly, the idea itself is reusable. A university, school, or local community could build on Touch Grass to encourage outdoor activities, environmental awareness, and healthier digital habits.
 
-The application uses a vision-capable model to help assess submitted challenge photos. The result is an aid to review, not a guarantee that a challenge was completed. Image analysis cannot reliably establish identity or confirm a person's precise location from a photo alone. AI output may be inaccurate, so the result should be interpreted with appropriate caution.
+I believe open innovation is not just about making code available. It is about giving more people the opportunity to learn, experiment, and turn an idea into something useful.
 
-## Development Session
+## My Agent Session
 
-No agent-session or DevRelay recording link is included in this submission.
+An agent-session or DevRelay recording link is not included in this submission.
 
-## Challenge Categories
+## Prize Categories
 
-This project includes an Ollama-based, vision-capable model integration for AI-assisted image review. Select prize or partner categories only where the project meets the official eligibility and integration requirements.
+Open-source AI is a core part of this project through its Ollama-based, vision-capable model integration for image assessment.
+
+Prize and partner categories should be selected in accordance with the official challenge rules and the integrations that qualify.
 
 ---
 
-**Built around one simple thought: technology can sometimes help us spend less time on our screens and more time in the real world.**
+**Built with the idea that sometimes the best thing technology can do is help us spend less time on our screens and more time in the real world.**
 
 **Let's touch grass.**
