@@ -1,0 +1,48 @@
+name: Dependency Security Audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run npm audit
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > audit-report.json
+          audit_status=$?
+          node -e '
+            const fs = require("fs");
+            const r = JSON.parse(fs.readFileSync("audit-report.json", "utf8"));
+            console.log("Vulnerability totals:", JSON.stringify(r.metadata?.vulnerabilities ?? {}));
+            for (const [name, item] of Object.entries(r.vulnerabilities ?? {})) {
+              console.log(JSON.stringify({
+                name,
+                severity: item.severity,
+                direct: item.isDirect,
+                range: item.range,
+                fixAvailable: item.fixAvailable,
+                via: item.via.map(v => typeof v === "string" ? v : {name:v.name, title:v.title, range:v.range, url:v.url})
+              }));
+            }
+          '
+          exit 0
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.json
