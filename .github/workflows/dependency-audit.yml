@@ -10,10 +10,10 @@ permissions:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -24,7 +24,6 @@ jobs:
         run: |
           set +e
           npm audit --json > audit-report.json
-          audit_status=$?
           node -e '
             const fs = require("fs");
             const r = JSON.parse(fs.readFileSync("audit-report.json", "utf8"));
@@ -42,7 +41,7 @@ jobs:
           '
           exit 0
       - name: Upload audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: npm-audit-report
           path: audit-report.json
